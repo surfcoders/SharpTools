@@ -1,0 +1,1098 @@
+<script>
+	/* 
+      The API Key and Station ID are  set in the Tile Settings
+      when you edit an individual tile.
+  
+      You can also adjust the setting here instead and it will apply as your
+      base setting across ALL instances of this tile unless explicitly
+      overridden in an individual tile's settings
+    */
+	let API_KEY = ''; //this is set in tile settings now
+	let STATION_ID = ''; //this is set in tile settings now
+	const REFRESH_INTERVAL = 3 * 60 * 60 * 1000; //3 hours in milliseconds
+</script>
+<!-- Do not edit below -->
+<script type="application/json" id="tile-settings">
+{
+  "schema": "0.1.0",
+  "settings": [
+    {"label": "WeatherFlow API Key", "type": "STRING", "name": "apiKey"},
+    {"type": "STRING", "name": "stationId", "label": "Station ID"},
+    {
+      "default": "imperial",
+      "name": "units",
+      "type": "ENUM",
+      "label": "Units",
+      "values": ["imperial", "metric"]
+    },
+    {
+        "default": "30 seconds",
+        "name": "refreshInterval",
+        "type": "ENUM",
+        "label": "Refresh Interval",
+        "values": ["30 seconds", "1 minute", "5 minutes", "15 minutes", "30 minutes", "1 hour"]
+    },
+    {"label": "Language (see docs)", "type": "STRING", "name": "lang"},
+    {
+      "label": "Use Gradient Background",
+      "type": "BOOLEAN",
+      "name": "useGradientBackground"
+    }
+  ],
+  "name": "Tempest Weather",
+  "dimensions": {"height": 2, "width": 3}
+}
+</script>
+<!-- Do not edit above -->
+<!-- <script src="https://unpkg.com/vue@3"></script> -->
+<script src="https://unpkg.com/axios@0.27.2"></script>
+<script src="https://cdn.sharptools.io/js/custom-tiles.js"></script>
+<script src="https://polyfill.io/v3/polyfill.min.js?features=Intl"></script>
+
+<div>
+    <!-- Header data -->
+    <div class="tile-header" id="tile-header">
+        <!-- Station data -->
+        <div class="station-info" id="station-info"></div>
+        <!-- Update data -->
+        <div class="update-info" id="update-info"></div>
+    </div>
+    <div id="app">
+        <!-- TODAY data -->
+        <div class="today">
+            <div class="weather-icon">
+                <img src="#" id="weatherIcon">
+                <span class="hide">weatherIcon</span>
+            </div>
+            <div class="weather-summary" id="weatherSummary"></div>
+            <div class="temperature" id="temperature">
+            </div>
+            <div class="feels-like" id="feelsLike">
+            </div>
+            <div class="extra" id="highLow">
+                <div class="high" id="highTemp"></div>
+                <div class="low" id="lowTemp"></div>
+            </div>
+            <table class="sunrise-sunset">
+                <tbody>
+                    <tr class="day">
+                        <td class="weather-icon" align="center">
+                            <img src="https://tempestwx.com/images/sunrise.svg">
+                        </td>
+                        <td id="sunrise" align="left"></td>
+                        <td class="weather-icon" align="center">
+                            <img src="https://tempestwx.com/images/sunset.svg">
+                        </td>
+                        <td id="sunset" align="left"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- <div class="extra-small" id="humidPressure">
+                <div class="low" id="pressure"></div>
+            </div> -->
+        </div>
+
+        <!-- EXTRA DATA -->
+        <!-- <div>
+        </div> -->
+        <!-- FORECAST DATA -->
+        <div class="details" id="details" >
+            <table class="extra-info">
+                <tbody>
+                    <tr class="day">
+                        <td class="weather-icon" align="center">
+                            <img src="" id="humidityIcon">
+                        </td>
+                        <td id="humidity"></td>
+                    </tr>
+                    <tr class="day">
+                        <td class="weather-icon" align="center">
+                            <img src="" id="pressureIcon">
+                        </td>
+                        <td id="pressure"></td>
+                    </tr>
+                    <tr class="day">
+                        <td class="weather-icon" align="center">
+                            <img src="" id="uvIcon">
+                        </td>
+                        <td id="uvIndex"></td>
+                    </tr>
+                    <tr class="day">
+                        <td class="weather-icon" align="center">
+                            <img src="" id="windDirection">
+                        </td>
+                        <td id="windInfo"></td>
+                    </tr>
+                    <tr class="day">
+                        <td class="weather-icon" align="center">
+                            <img src="" id="lightningIcon">
+                        </td>
+                        <td id="lightning"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <table class="forecast">
+                <tbody>
+                    <tr class="day" id="forecast-1">
+                        <td id="forecast-1-dow">DOW</td>
+                        <td class="weather-icon" align="center">
+                            <img src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/possibly-rainy-day.svg" id="forecast-1-img">
+                        </td>
+                        <td id="forecast-1-precip" align="right">0%</td>
+                        <td id="forecast-1-high" align="right">dayHigh</td>
+                        <td id="forecast-1-low" align="right">dayLow</td>
+                    </tr>
+                    <tr class="day" id="forecast-2">
+                        <td id="forecast-2-dow">DOW</td>
+                        <td class="weather-icon" align="center">
+                            <img src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/possibly-rainy-day.svg" id="forecast-2-img">
+                        </td>
+                        <td id="forecast-2-precip" align="right">0%</td>
+                        <td id="forecast-2-high" align="right">dayHigh</td>
+                        <td id="forecast-2-low" align="right">dayLow</td>
+                    </tr>
+                    <tr class="day" id="forecast-3">
+                        <td id="forecast-3-dow">DOW</td>
+                        <td class="weather-icon" align="center">
+                            <img src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/possibly-rainy-day.svg" id="forecast-3-img">
+                        </td>
+                        <td id="forecast-3-precip" align="right">0%</td>
+                        <td id="forecast-3-high" align="right">dayHigh</td>
+                        <td id="forecast-3-low" align="right">dayLow</td>
+                    </tr>
+                    <tr class="day" id="forecast-4">
+                        <td id="forecast-4-dow">DOW</td>
+                        <td class="weather-icon" align="center">
+                            <img src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/possibly-rainy-day.svg" id="forecast-4-img">
+                        </td>
+                        <td id="forecast-4-precip" align="right">0%</td>
+                        <td id="forecast-4-high" align="right">dayHigh</td>
+                        <td id="forecast-4-low" align="right">dayLow</td>
+                    </tr>
+                    <tr class="day" id="forecast-5">
+                        <td id="forecast-5-dow">DOW</td>
+                        <td class="weather-icon" align="center">
+                            <img src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/possibly-rainy-day.svg" id="forecast-5-img">
+                        </td>
+                        <td id="forecast-5-precip" align="right">100%</td>
+                        <td id="forecast-5-high" align="right">dayHigh</td>
+                        <td id="forecast-5-low" align="right">dayLow</td>
+                    </tr>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* delete this line to remove gradient */	
+    /* html {
+		background: linear-gradient(
+			52deg,
+			rgba(12, 5, 147, 1) 0%,
+			rgba(16, 16, 172, 1) 30%,
+			rgba(113, 0, 255, 1) 100%
+		);
+	} */
+	html, body {
+		height: 100%;
+		margin: 0;
+		font-size: 5vh;
+	}
+	#app {
+		height: 100%;
+		display: flex;
+		justify-content: space-evenly;
+	}
+    .details {
+		height: 100vh; /* 90vh */
+		margin-right: 0;
+        margin-left: 2vw;
+        width: 48vw;
+    }
+	.today {
+		height: 89vh; /* 90vh */
+		text-align: center;
+		margin-right: 0;
+        margin-left: 2vw;
+        width: 48vw;
+        border-right-color: white;
+        border-right-width: thin;
+        border-right-style: solid;        
+	}
+	.today .temperature {
+		font-size: 20vh;
+		margin-top: -2vh;
+		margin-bottom: -2vh;
+		padding-left: 3vw;
+	} /* minor padding left to visual center (account for deg symbol) */
+	.today .feels-like {
+		font-size: 5vh;
+		opacity: 0.8;
+	}
+	.today .weather-summary {
+		text-transform: capitalize;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+	.today .station-info {
+		text-transform: capitalize;
+		/* text-overflow: ellipsis; */
+		white-space: nowrap;
+		overflow: visible;
+        margin-top: 1vh;
+	}
+    .tile-header {
+		display: flex;
+        margin-top: 1vh;
+        border-bottom-color: white;
+        border-bottom-width: thin;
+        border-bottom-style: solid;        
+    }
+	.tile-header .station-info {
+		text-transform: capitalize;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow:hidden;
+        margin-top: 1vh;
+        text-align: left;
+        width: 48vw;
+        margin-left: 2vw;
+        font-size: 4vh;
+        /* border-right-color: white;
+        border-right-width: thin;
+        border-right-style: solid;         */
+	}
+	.tile-header .update-info {
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow:hidden;
+        margin-top: 1vh;
+        text-align: right;
+        width: 48vw;
+        margin-right: 2vw;
+        font-size: 4vh;
+	}
+
+    .today .weather-summary-small {
+		text-transform: capitalize;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		overflow: hidden;
+        font-size: 4vh;
+	}
+	.today .weather-icon img {
+		max-width: 30vw;
+		max-height: 30vh;
+	}
+	.today .extra {
+		font-size: 5vh;
+		opacity: 0.8;
+		display: flex;
+		justify-content: space-evenly;
+	}
+	.today .extra-small {
+		font-size: 3vh;
+		opacity: 0.8;
+		display: flex;
+		justify-content: space-evenly;
+	}
+
+    .extra-info {
+		height: 45vh;
+		width: 46vw;
+		font-size: 4vh;
+        border-bottom-style: solid;
+        border-bottom-color: white;
+        border-bottom-width: thin;        
+    }
+	.extra-info td {
+		padding: 0;
+	}
+	.extra-info .day .weather-icon {
+		width: 5vw;
+	}
+    .extra-info .day .weather-icon img {
+		height: 5vh;
+        filter: invert(100%) sepia(16%) saturate(7479%) hue-rotate(186deg) brightness(111%) contrast(108%);
+        margin-top: 2vh;
+	}
+    .sunrise-sunset {
+        /* height: 45vh; */
+        width: 100%;
+        font-size: 4vh;
+    }
+	.forecast {
+		height: 45vh;
+		width: 46vw;
+		font-size: 4vh;
+	}
+	.forecast td {
+		padding: 0;
+	}
+	/* .forecast .day { display: flex; justify-content: space-around; } */
+	/* .forecast .day { height: 16vh; } */ /* 1/6 height */
+	.forecast .day .weather-icon {
+		width: 5vw;
+	}
+	.forecast .day .weather-icon img {
+		height: 7vh;
+	}
+    .today .sunrise-sunset .weather-icon img {
+        height: 7vh;
+        filter: invert(100%) sepia(16%) saturate(7479%) hue-rotate(186deg) brightness(111%) contrast(108%);
+        margin-top: 1vh;
+    }
+	.hide {
+		display: none;
+	}
+    
+</style>
+
+<script>
+	// const { createApp } = Vue;
+	const FORECAST_BASE_URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?station_id=[_STATION_ID]&units_temp=[_UNITS_TEMP]&units_wind=[_UNITS_WIND]&units_pressure=[_UNITS_PRESSURE]&units_precip=[_UNITS_PRECIP]&units_distance=[_UNITS_DISTANCE]&token=[_TOKEN]';
+	const STATION_BASE_URL = 'https://swd.weatherflow.com/swd/rest/stations/[_STATION_ID]?token=[_TOKEN]';
+    const gradientBackground = 'linear-gradient(52deg,rgba(12, 5, 147, 1) 0%,rgba(16, 16, 172, 1) 30%,rgba(113, 0, 255, 1) 100%)';
+    const humidityIcon = 'https://tempestwx.com/images/cc-humidity.svg';
+    document.getElementById('humidityIcon').src = humidityIcon;
+    const pressureIcon = 'https://tempestwx.com/images/cc-pressure-trend-arrow.svg';
+    document.getElementById('pressureIcon').src = pressureIcon;
+    const uvIcon = 'https://tempestwx.com/images/cc-uv.svg';
+    document.getElementById('uvIcon').src = uvIcon;
+    const windDirectionIcon = 'https://tempestwx.com/images/cc-wind.svg';
+    document.getElementById('windDirection').src = windDirectionIcon;
+    const lightningIcon = 'https://tempestwx.com/images/cc-lightning.svg';
+    document.getElementById('lightningIcon').src = lightningIcon;
+
+	const noDecimal = new Intl.NumberFormat(navigator.language, {
+		maximumFractionDigits: 0,
+	});
+    let vm = this;
+    let refreshTile = null;
+    let refreshInterval = 30000; //default
+
+	const LANGUAGE_MAP = {
+		af: { feels_like: 'Hitte-indeks' },
+		al: { feels_like: 'ndjehet si' },
+		ar: { feels_like: 'مؤشر الحرارة' },
+		az: { feels_like: 'istilik indeksi' },
+		bg: { feels_like: 'топлинен индекс' },
+		ca: { feels_like: 'índex de calor' },
+		cz: { feels_like: 'zdánlivá teplota' },
+		da: { feels_like: 'Føles som' },
+		de: { feels_like: 'Hitzeindex' },
+		el: { feels_like: 'δείκτης θερμότητας' },
+		en: { feels_like: 'Feels Like' },
+		eu: { feels_like: 'bero-indizea' },
+		fa: { feels_like: 'شاخص گرما' },
+		fi: { feels_like: 'lämpöindeksi' },
+		fr: { feels_like: 'indice de chaleur' },
+		gl: { feels_like: 'índice de calor' },
+		he: { feels_like: 'מד חום' },
+		hi: { feels_like: 'ताप सूचकांक' },
+		hr: { feels_like: 'indeks topline' },
+		hu: { feels_like: 'hő index' },
+		id: { feels_like: 'Indeks panas' },
+		it: { feels_like: 'indice di calore' },
+		ja: { feels_like: '暑さ指数' },
+		kr: { feels_like: '열 지수' },
+		la: { feels_like: 'siltuma indekss' },
+		lt: { feels_like: 'šilumos indeksas' },
+		mk: { feels_like: 'индекс на топлина' },
+		no: { feels_like: 'varmeindeks' },
+		nl: { feels_like: 'warmte-index' },
+		pl: { feels_like: 'indeks ciepła' },
+		pt: { feels_like: 'índice de calor' },
+		pt_br: { feels_like: 'índice de calor' },
+		ro: { feels_like: 'Index de caldura' },
+		ru: { feels_like: 'тепловой индекс' },
+		sv: { feels_like: 'värmeindex' },
+		se: { feels_like: 'värmeindex' },
+		sk: { feels_like: 'tepelný index' },
+		sl: { feels_like: 'toplotni indeks' },
+		sp: { feels_like: 'índice de calor' },
+		es: { feels_like: 'índice de calor' },
+		sr: { feels_like: 'топлотни индекс' },
+		th: { feels_like: 'ดัชนีความร้อน' },
+		tr: { feels_like: 'ısı indeksi' },
+		ua: { feels_like: 'індекс тепла' },
+		uk: { feels_like: 'індекс тепла' },
+		vi: { feels_like: 'chỉ số nhiệt' },
+		zh_cn: { feels_like: '热度指数' },
+		zh_tw: { feels_like: '熱度指數' },
+		zu: { feels_like: 'uzizwa' },
+	};
+
+
+	function formatTemperature(v) {
+		if (v != null && v !== false) {
+			v = noDecimal.format(v);
+		}
+		return `${v || ''}°`;
+	}
+
+	function isNullOrEmpty(v) {
+		return v == null || v === '';
+	}
+
+    function getPhrase(phrase) {
+        let lang = this.getLanguage();
+        // console.log('Language: ' + lang);
+        return LANGUAGE_MAP[lang][phrase] || '';
+    }
+
+    function epochToDate(epoch, short) {
+        let newDate = new Date(epoch * 1000);
+        let newDateString = `${newDate.toLocaleDateString()} ${newDate.toLocaleTimeString()}`;
+        if (short) {
+            newDateString = newDate.toLocaleString('en-US', {
+                day: 'numeric',
+                month: 'numeric', 
+                hour: 'numeric',
+                minute: 'numeric',
+                year: '2-digit'
+            });
+        }
+        
+        return newDateString;
+    }
+    function setPressureTrendIcon(pressureTrend) {
+        let rotate = '0deg';
+        switch (pressureTrend) {
+            case 'steady':
+                rotate = '0deg';
+                break;
+            case 'rising':
+                rotate = '-45deg';
+                break;
+            case 'falling':
+                rotate = '45deg';
+                break;
+            default:
+                rotate = '0deg';
+                break;
+        }
+        document.getElementById('pressureIcon').style.transform = `rotate(${rotate})`;
+    }
+    function setWindDirectionIcon(windDirection) {
+        let rotate = '0deg';
+        switch (windDirection) {
+            case 'N':
+                rotate = '0deg';
+                break;
+            case 'NNE':
+                rotate = '22.5deg';
+                break;
+            case 'NE':
+                rotate = '45deg';
+                break;
+            case 'ENE':
+                rotate = '67.5deg';
+                break;
+            case 'E':
+                rotate = '90deg';
+                break;
+            case 'ESE':
+                rotate = '112.5deg';
+                break;
+            case 'SE':
+                rotate = '135deg';
+                break;
+            case 'SSE':
+                rotate = '157.5deg';
+                break;
+            case 'S':
+                rotate = '180deg';
+                break;
+            case 'SSW':
+                rotate = '202.5deg';
+                break;
+            case 'SW':
+                rotate = '225deg';
+                break;
+            case 'WSW':
+                rotate = '247.5deg';
+                break;
+            case 'W':
+                rotate = '270deg';
+                break;
+            case 'WNW':
+                rotate = '292.5deg';
+                break;
+            case 'NW':
+                rotate = '315deg';
+                break;
+            case 'NNW':
+                rotate = '337.5deg';
+                break;
+        }
+        document.getElementById('windDirection').style.transform = `rotate(${rotate})`;
+    }
+
+
+    function getTempestWeather(getJustForecastData) {
+        console.log(`Gathering Tempest Data from Station ${STATION_ID}`);
+        if (isNullOrEmpty(API_KEY) && isNullOrEmpty(STATION_ID)) {
+            console.log('Token and/or Station ID are null or empty');
+            return;
+        }
+        const parameters = {
+            token: API_KEY,
+            station_id: STATION_ID,
+            units_temp: 'f',
+            units_wind: 'mph',
+            units_precip: 'in',
+            units_distance: "mi",
+            units_pressure: "inhg"
+        };
+
+        if (vm.units.toUpperCase() == 'METRIC') {
+            parameters.units_temp = 'c';
+            parameters.units_wind = 'kph';
+            parameters.units_precip = 'mm';
+            parameters.units_distance = 'km';
+            parameters.units_pressure = "mb"
+        }
+        console.log('Parameters: ' + JSON.stringify(parameters));
+
+        //'https://swd.weatherflow.com/swd/rest/better_forecast?station_id=[_STATION_ID]&units_temp=[_UNITS_TEMP]&units_wind=[_UNITS_WIND]&units_precip=[_UNITS_PRECIP]&units_distance=[_UNITS_DISTANCE]&token=[_TOKEN]';
+        let url = FORECAST_BASE_URL.replace('[_STATION_ID]',parameters.station_id);
+        url = url.replace('[_UNITS_TEMP]',parameters.units_temp);
+        url = url.replace('[_UNITS_WIND]',parameters.units_wind);
+        url = url.replace('[_UNITS_PRECIP]',parameters.units_precip);
+        url = url.replace('[_UNITS_DISTANCE]',parameters.units_distance);
+        url = url.replace('[_UNITS_PRESSURE]',parameters.units_pressure);
+        url = url.replace('[_TOKEN]',parameters.token);
+        let tempestForecastData = null;
+        let tempestStationData = null;
+        //Always get the forecast
+        axios.get(url).then(function (response) {
+            console.log('Successfully retrieved forecast data');
+            tempestForecastData = response.data;
+            // console.log(tempestData);
+            //Replace the values on the elements here
+            //Below is always updated
+            let weatherSummary = tempestForecastData.current_conditions.conditions;
+            if (tempestForecastData.current_conditions.icon.includes('possibly') && tempestForecastData.forecast.daily[0].precip_probability > 0) {
+                weatherSummary+= ` (${tempestForecastData.forecast.daily[0].precip_probability}%)`;
+                document.getElementById('weatherSummary').className = 'weather-summary-small';
+            }
+
+            //Updated based on 
+            if (getJustForecastData) {
+                document.getElementById('update-info').innerHTML = `Updated: ${epochToDate(tempestForecastData.current_conditions.time)}`;
+                document.getElementById('weatherIcon').src = `https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/${tempestForecastData.current_conditions.icon}.svg`;
+                document.getElementById('temperature').innerHTML = formatTemperature(tempestForecastData.current_conditions.air_temperature);
+                document.getElementById('weatherSummary').innerHTML = weatherSummary; //tempestData.current_conditions.conditions;
+                document.getElementById('feelsLike').innerHTML = getPhrase('feels_like') + ' ' + formatTemperature(tempestForecastData.current_conditions.feels_like);
+                document.getElementById('highTemp').innerHTML = `High: ${formatTemperature(tempestForecastData.forecast.daily[0].air_temp_high)}`;
+                document.getElementById('lowTemp').innerHTML = `Low: ${formatTemperature(tempestForecastData.forecast.daily[0].air_temp_low)}`;
+                let sunrise = new Date(tempestForecastData.forecast.daily[0].sunrise * 1000);
+                document.getElementById('sunrise').innerHTML = sunrise.toLocaleTimeString('en-US', {hour: 'numeric', minute:'numeric'});
+                let sunset = new Date(tempestForecastData.forecast.daily[0].sunset * 1000);
+                document.getElementById('sunset').innerHTML = sunset.toLocaleTimeString('en-US', {hour: 'numeric', minute:'numeric'});
+                // document.getElementById('humidity').innerHTML = `Humidity: ${tempestForecastData.current_conditions.relative_humidity}%`;
+                document.getElementById('humidity').innerHTML = `${tempestForecastData.current_conditions.relative_humidity}% humidity`;
+                // document.getElementById('pressure').innerHTML = `Pressure: ${tempestForecastData.current_conditions.sea_level_pressure} ${tempestForecastData.units.units_pressure} - ${tempestForecastData.current_conditions.pressure_trend}`;
+                document.getElementById('pressure').innerHTML = `${tempestForecastData.current_conditions.sea_level_pressure} ${tempestForecastData.units.units_pressure} - ${tempestForecastData.current_conditions.pressure_trend}`;
+                setPressureTrendIcon(tempestForecastData.current_conditions.pressure_trend);
+                document.getElementById('uvIndex').innerHTML = `${tempestForecastData.current_conditions.uv} UV Index`;
+                setWindDirectionIcon(tempestForecastData.current_conditions.wind_direction_cardinal);
+                document.getElementById('windInfo').innerHTML = `${tempestForecastData.current_conditions.wind_direction_cardinal} ${tempestForecastData.current_conditions.wind_avg} ${tempestForecastData.units.units_wind}`;
+                let lightningInfo = `${epochToDate(tempestForecastData.current_conditions.lightning_strike_last_epoch, true)} (${tempestForecastData.current_conditions.lightning_strike_last_distance_msg})`;
+                document.getElementById('lightning').innerHTML = lightningInfo;
+                populateForecastGrid(tempestForecastData);
+                console.log(tempestForecastData);
+            } else {
+                url = STATION_BASE_URL.replace('[_STATION_ID]',parameters.station_id);
+                url = url.replace('[_TOKEN]',parameters.token);
+                axios.get(url).then(function (response) {
+                    console.log('Successfully retrieved station data');
+                    tempestStationData = response.data;
+                    let deviceName = '';
+                    if (!getJustForecastData) {
+                        let foundDevice = false;
+                        for (let i = 0; i < tempestStationData.stations.length; i++) {
+                            const station = tempestStationData.stations[i];
+                            if (station.station_id == Number(STATION_ID) ) {
+                                //Found station.  Loop through devices
+                                console.log(`Station ${station.station_id} found.  Searching for device...`);
+                                for (let j = 0; j < station.devices.length; j++) {
+                                    const device = station.devices[j];
+                                    if (device.device_type == 'ST') {
+                                        //Get the name
+                                        console.log(`${device.device_type} device found for Station ${station.station_id}: ${device.device_meta.name}`)
+                                        deviceName = device.device_meta.name;
+                                        foundDevice = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if (foundDevice) {
+                                break;
+                            }                   
+                        }
+                        document.getElementById('station-info').innerHTML = `${tempestForecastData.location_name} (${deviceName})`;
+                        if (!foundDevice) {
+                            console.log(`Device not found for Station ID ${STATION_ID}.`)
+                        }
+                    }
+                    document.getElementById('update-info').innerHTML = `Updated: ${epochToDate(tempestForecastData.current_conditions.time)}`;
+                    document.getElementById('weatherIcon').src = `https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/${tempestForecastData.current_conditions.icon}.svg`;
+                    document.getElementById('temperature').innerHTML = formatTemperature(tempestForecastData.current_conditions.air_temperature);
+                    document.getElementById('weatherSummary').innerHTML = weatherSummary; //tempestData.current_conditions.conditions;
+                    document.getElementById('feelsLike').innerHTML = getPhrase('feels_like') + ' ' + formatTemperature(tempestForecastData.current_conditions.feels_like);
+                    document.getElementById('highTemp').innerHTML = `High: ${formatTemperature(tempestForecastData.forecast.daily[0].air_temp_high)}`;
+                    document.getElementById('lowTemp').innerHTML = `Low: ${formatTemperature(tempestForecastData.forecast.daily[0].air_temp_low)}`;
+                    let sunrise = new Date(tempestForecastData.forecast.daily[0].sunrise * 1000);
+                    document.getElementById('sunrise').innerHTML = sunrise.toLocaleTimeString('en-US', {hour: 'numeric', minute:'numeric'});
+                    let sunset = new Date(tempestForecastData.forecast.daily[0].sunset * 1000);
+                    document.getElementById('sunset').innerHTML = sunset.toLocaleTimeString('en-US', {hour: 'numeric', minute:'numeric'});
+                    // document.getElementById('humidity').innerHTML = `Humidity: ${tempestForecastData.current_conditions.relative_humidity}%`;
+                    document.getElementById('humidity').innerHTML = `${tempestForecastData.current_conditions.relative_humidity}% humidity`;
+                    // document.getElementById('pressure').innerHTML = `Pressure: ${tempestForecastData.current_conditions.sea_level_pressure} ${tempestForecastData.units.units_pressure} - ${tempestForecastData.current_conditions.pressure_trend}`;
+                    document.getElementById('pressure').innerHTML = `${tempestForecastData.current_conditions.sea_level_pressure} ${tempestForecastData.units.units_pressure} - ${tempestForecastData.current_conditions.pressure_trend}`;
+                    setPressureTrendIcon(tempestForecastData.current_conditions.pressure_trend);
+                    document.getElementById('uvIndex').innerHTML = `${tempestForecastData.current_conditions.uv} UV Index`;
+                    setWindDirectionIcon(tempestForecastData.current_conditions.wind_direction_cardinal);
+                    document.getElementById('windInfo').innerHTML = `${tempestForecastData.current_conditions.wind_direction_cardinal} ${tempestForecastData.current_conditions.wind_avg} ${tempestForecastData.units.units_wind}`;
+                    let lightningInfo = `${epochToDate(tempestForecastData.current_conditions.lightning_strike_last_epoch, true)} (${tempestForecastData.current_conditions.lightning_strike_last_distance_msg})`;
+                    document.getElementById('lightning').innerHTML = lightningInfo;
+                    populateForecastGrid(tempestForecastData);
+                    console.log(tempestStationData);
+                    console.log(tempestForecastData);
+                });
+            }
+            // return tempestForecastData;
+        });
+        // return tempestForecastData;
+    }
+
+    function populateForecastGrid(data) {
+        let forecastData = data.forecast.daily;
+        let iconURLTemplate = `https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/[_CONDITION].svg`;
+
+        //Start the day after today
+        for (let i = 1; i <= 5; i++) {
+            const forecast = forecastData[i];
+            let iconURL = iconURLTemplate.replace('[_CONDITION]',forecast.icon);
+            let elemIDTemplate = `forecast-${i}-`;
+            //Start replacing
+            let elemID = `${elemIDTemplate}dow`;
+            document.getElementById(elemID).innerHTML = getDoW(forecast.day_start_local);
+            elemID = `${elemIDTemplate}img`;
+            document.getElementById(elemID).src = iconURL;
+            elemID = `${elemIDTemplate}precip`;
+            document.getElementById(elemID).innerHTML = `${forecast.precip_probability}%`;
+            elemID = `${elemIDTemplate}high`;
+            document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temp_high)}`;
+            elemID = `${elemIDTemplate}low`;
+            document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temp_low)}`;
+        }
+    }
+    function getDoW(epoch) {
+        let dt = new Date(epoch * 1000);
+        let dow = 'N/A';
+        if (dt != null) {
+            dow = dt.toLocaleString('en-US', {weekday: 'short'});
+        }
+        return dow;
+    }
+
+    function convertRefreshInterval(refreshIntervalString) {
+        let refreshIntervalResults = refreshInterval; //Default
+        switch (refreshIntervalString) {
+            // case '5 seconds':
+            //     refreshIntervalResults = 5000;
+            //     break;
+            // case '10 seconds':
+            //     refreshIntervalResults = 10000;
+            //     break;
+            case '30 seconds':
+                refreshIntervalResults = 30000;
+                break;
+            case '1 minute':
+                refreshIntervalResults = 1 * 60 * 1000;
+                break;
+            case '5 minutes':
+                refreshIntervalResults = 5 * 60 * 1000;
+                break;
+            case '15 minutes':
+                refreshIntervalResults = 15 * 60 * 1000;
+                break;
+            case '30 minutes':
+                refreshIntervalResults = 30 * 60 * 1000;
+                break;
+            case '1 hour':
+                refreshIntervalResults = 1 * 60 * 60 * 1000;
+                break;
+            default:
+                refreshIntervalResults = 30000;
+                break;
+        }
+        return refreshIntervalResults;
+    }
+
+    stio.ready(function(data){
+        console.log('SharpTools library ready');
+        if (!isNullOrEmpty(data.settings.apiKey)) {
+            API_KEY = data.settings.apiKey;
+        }
+        console.log('API Key: ' + data.settings.apiKey);
+        if (!isNullOrEmpty(data.settings.stationId)) {
+            STATION_ID = data.settings.stationId;
+        }
+        console.log('Station ID: ' + data.settings.stationId);
+        if (!isNullOrEmpty(data.settings.units)) {
+            vm.units = data.settings.units;
+        }
+        console.log('Units: ' + data.settings.units);
+        if (!isNullOrEmpty(data.settings.lang)) {
+            vm.lang = data.settings.lang;
+            // vm.formatters.dayOfWeek = vm.getDayOfWeekFormatter();
+        }
+        console.log('Language: ' + data.settings.lang);
+        if (!isNullOrEmpty(data.settings.useGradientBackground)) {
+            vm.useGradientBackground = data.settings.useGradientBackground;
+            // vm.formatters.dayOfWeek = vm.getDayOfWeekFormatter();
+        }
+        console.log('Use Gradient Background: ' + data.settings.useGradientBackground);
+
+        if (!isNullOrEmpty(data.settings.refreshInterval)) {
+            vm.refreshInterval = data.settings.refreshInterval;
+            // vm.formatters.dayOfWeek = vm.getDayOfWeekFormatter();
+        }
+        console.log('Refresh Interval: ' + data.settings.refreshInterval);
+        //Convert refresh interval
+        refreshInterval = convertRefreshInterval(vm.refreshInterval);
+        
+
+        if (vm.useGradientBackground) {
+            document.getElementsByTagName('html')[0].style.background = gradientBackground;
+        }
+
+        getTempestWeather();
+        // console.log(tempestData);
+        // let interval = 5000; //3 hours in milliseconds
+        refreshTile = setInterval(getTempestWeather,refreshInterval, true);
+
+    });
+
+    // function init() {
+    //     let vm = this;
+    //     console.log(vm);
+    //     stio.ready(function (data) {
+    //         if (!isNullOrEmpty(data.settings.apiKey)) {
+    //             API_KEY = data.settings.apiKey;
+    //         }
+    //         console.log('API Key: ' + data.settings.apiKey);
+    //         if (!isNullOrEmpty(data.settings.stationId)) {
+    //             STATION_ID = data.settings.stationId;
+    //         }
+    //         console.log('Station ID: ' + data.settings.stationId);
+    //         if (!isNullOrEmpty(data.settings.units)) {
+    //             vm.units = data.settings.units;
+    //         }
+    //         console.log('Units: ' + data.settings.units);
+    //         if (!isNullOrEmpty(data.settings.lang)) {
+    //             vm.lang = data.settings.lang;
+    //             // vm.formatters.dayOfWeek = vm.getDayOfWeekFormatter();
+    //         }
+    //         console.log('Language: ' + data.settings.lang);
+
+    //         // vm.initialize();
+    //     });
+    // }
+
+    // init();
+
+    function getLanguage(lang) {
+        //allow the language code to be passed in or fallback to the data model
+        if (lang == null) {
+            lang = this.lang;
+        }
+        //if it's a valid language, use it
+        if (this.isValidLanguage(this.lang)) {
+            return this.lang;
+        } else {
+            return 'en'; //default to english
+        }
+    }
+
+    function isValidLanguage(lang) {
+        if (isNullOrEmpty(lang)) {
+            return false;
+        }
+
+        return LANGUAGE_MAP[lang] != null;
+    }
+
+
+    
+    // document.getElementById('weatherIcon').src = 'https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/partly-cloudy-day.svg';
+    // document.getElementById('temperature').innerHTML = formatTemperature('85');
+    // document.getElementById('weatherSummary').innerHTML = 'Partly Cloudy';
+    // document.getElementById('feelsLike').innerHTML = getPhrase('feels_like') + ' ' + formatTemperature('89');
+    //https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/partly-cloudy-day.svg
+
+
+
+
+
+
+	// createApp({
+	// 	data() {
+	// 		return {
+	// 			// message: 'Hello Vue!',
+	// 			weather: null,
+	// 			// today: null,
+	// 			// forecast: [],
+	// 			location: '',
+	// 			units: 'imperial',
+
+	// 			formatters: {
+	// 				dayOfWeek: this.getDayOfWeekFormatter(),
+	// 			},
+	// 		};
+	// 	},
+	// 	computed: {
+	// 		forecast() {
+	// 			return (
+	// 				this.weather &&
+	// 				this.weather.daily &&
+	// 				this.weather.daily.slice(1, 7)
+	// 			);
+	// 		}, //remove the today's element
+	// 		temperature() {
+	// 			return formatTemperature(
+	// 				this.weather && this.weather.current.temp
+	// 			);
+	// 		},
+	// 		feelsLike() {
+	// 			return formatTemperature(
+	// 				this.weather && this.weather.current.feels_like
+	// 			);
+	// 		},
+	// 		weatherIcon() {
+	// 			return this.weather && this.weather.current.weather[0].icon;
+	// 		},
+	// 		weatherIconImageUrl() {
+	// 			return this.weatherIcon && this.getIconUrl(this.weatherIcon);
+	// 		},
+	// 		weatherSummary() {
+	// 			return (
+	// 				this.weather && this.weather.current.weather[0].description
+	// 			);
+	// 		},
+	// 		highTemp() {
+	// 			return formatTemperature(
+	// 				this.weather && this.weather.daily[0].temp.max
+	// 			);
+	// 		},
+	// 		lowTemp() {
+	// 			return formatTemperature(
+	// 				this.weather && this.weather.daily[0].temp.min
+	// 			);
+	// 		},
+	// 	},
+	// 	methods: {
+	// 		getOWMParams() {
+	// 			let { lat, lon } = this.getPosition();
+	// 			let params = `?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=${this.units}`;
+	// 			//if we have a valid language entered, append that parameter
+	// 			if (this.isValidLanguage(this.lang)) {
+	// 				params += `&lang=${this.lang}`;
+	// 			}
+	// 			return params;
+	// 		},
+	// 		getPosition() {
+	// 			//TODO: make a query to geocode a position input as latitude/longitude
+	// 			return {
+	// 				lat: LAT,
+	// 				lon: LON,
+	// 			};
+	// 		},
+	// 		//simplify to a single API call
+	// 		getOneWeather() {
+	// 			let url =
+	// 				BASE_URL +
+	// 				'onecall' +
+	// 				this.getOWMParams() +
+	// 				'&exclude=minutely,hourly';
+	// 			let vm = this;
+	// 			return axios.get(url).then(function (response) {
+	// 				console.log(response);
+	// 				vm.weather = response.data;
+	// 			});
+	// 		},
+	// 		//originally we were doing an individual today and forecast call, but the forecast is only hourly
+	// 		// daily forecasts aren't included with the free tier, so we simplified to the onecall
+    //         getTempestWeather() {
+    //             //Testing
+    //             const parameters = {
+    //                 token: '101d6553-8110-4655-be0c-f00e33383c81',
+    //                 station_id: '78229',
+    //                 units_temp: 'f',
+    //                 units_wind: 'mph',
+    //                 units_precip: 'in',
+    //                 units_distance: "mi"
+    //             };
+    //             //'https://swd.weatherflow.com/swd/rest/better_forecast?station_id=[_STATION_ID]&units_temp=[_UNITS_TEMP]&units_wind=[_UNITS_WIND]&units_precip=[_UNITS_PRECIP]&units_distance=[_UNITS_DISTANCE]&token=[_TOKEN]';
+    //             let url = BASE_URL.replace('[_STATION_ID]',parameters.station_id);
+    //             url = url.replace('[_UNITS_TEMP]',parameters.units_temp);
+    //             url = url.replace('[_UNITS_WIND]',parameters.units_wind);
+    //             url = url.replace('[_UNITS_PRECIP]',parameters.units_precip);
+    //             url = url.replace('[_UNITS_DISTANCE]',parameters.units_distance);
+    //             url = url.replace('[_TOKEN]',parameters.token);
+    //             let tempestData = null;
+	// 			axios.get(url).then(function (response) {
+	// 				// console.log(response.data)
+	// 				tempestData = response.data;
+
+    //                 //Replace the values on the elements here
+
+	// 			});
+    //         },
+	// 		getWeather() {
+	// 			//get today's weather
+	// 			let url = BASE_URL + 'weather' + this.getOWMParams();
+	// 			let vm = this;
+	// 			return axios.get(url).then(function (response) {
+	// 				// console.log(response.data)
+	// 				vm.today = response.data;
+	// 			});
+	// 		},
+	// 		getForecast() {
+	// 			let url = BASE_URL + 'forecast' + this.getOWMParams();
+	// 			let vm = this;
+	// 			return axios.get(url).then(function (response) {
+	// 				console.log(response.data);
+	// 				let daily3hours = response.data.list;
+	// 				//merge the every three hours into a daily
+	// 				// this.forecast =
+	// 			});
+	// 		},
+	// 		//take a 3 hour forecast and merge it into a daily
+	// 		mergeForecast() {
+	// 			//decided to switch to the One Weather API to simplify this
+	// 		},
+	// 		//FORECAST helpers
+	// 		getDoW(day) {
+	// 			let dt = new Date(day.dt * 1000);
+	// 			if (dt != null) return this.formatters.dayOfWeek.format(dt);
+	// 		},
+	// 		getIcon(day) {
+	// 			return day.weather[0].icon;
+	// 		},
+	// 		getIconUrl(dayOrCode) {
+	// 			//if we're given a raw string, use it. Otherwise assume it's a day object and get the icon code from it
+	// 			let code =
+	// 				typeof dayOrCode === 'string'
+	// 					? dayOrCode
+	// 					: this.getIcon(dayOrCode);
+	// 			// return this.getOWIconUrl(code); //uncomment this to use the original OWM icons
+	// 			return this.getMeteoconUrl(code);
+	// 		},
+	// 		getHigh(day) {
+	// 			return formatTemperature(day.temp.max);
+	// 		},
+	// 		getLow(day) {
+	// 			return formatTemperature(day.temp.min);
+	// 		},
+
+	// 		getMeteoconUrl(code) {
+	// 			//See: https://basmilius.github.io/weather-icons/index-line.html
+	// 			let name = METEO_CODE_TO_NAME[code];
+	// 			return `https://basmilius.github.io/weather-icons/production/line/all/${name}.svg`;
+	// 		},
+	// 		getOWIconUrl(code) {
+	// 			return (
+	// 				code && `https://openweathermap.org/img/wn/${code}@2x.png`
+	// 			);
+	// 		},
+
+	// 		getLanguage(lang) {
+	// 			//allow the language code to be passed in or fallback to the data model
+	// 			if (lang == null) lang = this.lang;
+	// 			//if it's a valid language, use it
+	// 			if (this.isValidLanguage(this.lang)) return this.lang;
+	// 			else return 'en'; //default to english
+	// 		},
+	// 		isValidLanguage(lang) {
+	// 			if (isNullOrEmpty(lang)) return false;
+
+	// 			return LANGUAGE_MAP[lang] != null;
+	// 		},
+	// 		getPhrase(phrase) {
+	// 			let lang = this.getLanguage();
+	// 			return LANGUAGE_MAP[lang][phrase] || '';
+	// 		},
+	// 		getDayOfWeekFormatter() {
+	// 			let lang = this.getLanguage();
+	// 			if (typeof lang === 'string') lang.replace('_', '-'); //BCP 47 uses `-` whereas OWM uses `_`
+	// 			return new Intl.DateTimeFormat(lang, { weekday: 'short' });
+	// 		},
+
+	// 		initialize() {
+	// 			//get the weather once
+	// 			let vm = this;
+	// 			this.getOneWeather().then(function () {
+	// 				//then if it succeeds, schedule it to run periodically
+	// 				let interval = 3 * 60 * 60 * 1000; //3 hours in milliseconds
+	// 				setInterval(vm.getOneWeather, REFRESH_INTERVAL);
+	// 			});
+	// 			// this.getWeather();
+	// 			// this.getForecast();
+	// 		},
+	// 	},
+	// 	mounted() {
+	// 		let vm = this;
+	// 		stio.ready(function (data) {
+	// 			if (!isNullOrEmpty(data.settings.apiKey)) {
+	// 				API_KEY = data.settings.apiKey;
+	// 			}
+	// 			// if (!isNullOrEmpty(data.settings.location)) {
+	// 			// 	let re = /^(-?\d+(\.\d+)?),\s*(-?\d+(\.\d+)?)$/;
+	// 			// 	let [m, lat, latp, lon, lonp] =
+	// 			// 		data.settings.location.match(re);
+	// 			// 	LAT = lat;
+	// 			// 	LON = lon;
+	// 			// }
+	// 			if (!isNullOrEmpty(data.settings.units)) {
+	// 				vm.units = data.settings.units;
+	// 			}
+	// 			if (!isNullOrEmpty(data.settings.lang)) {
+	// 				vm.lang = data.settings.lang;
+	// 				vm.formatters.dayOfWeek = vm.getDayOfWeekFormatter();
+	// 			}
+
+	// 			vm.initialize();
+	// 		});
+	// 	},
+	// }).mount('#app');
+
+	METEO_CODE_TO_NAME = {
+		'01d': 'clear-day', //clear
+		'01n': 'clear-night',
+		'02d': 'overcast-day', //clouds
+		'02n': 'overcast-night',
+		'03d': 'cloudy', //scattered clouds
+		'03n': 'cloudy',
+		'04d': 'overcast', //broken clouds
+		'04n': 'overcast',
+		'09d': 'rain', //shower rain
+		'09n': 'rain',
+		'10d': 'partly-cloudy-day-rain', //rain
+		'10n': 'partly-cloudy-night-rain',
+		'11d': 'thunderstorms', //thunderstorm
+		'11n': 'thunderstorms',
+		'13d': 'snow', //snow
+		'13n': 'snow',
+		'50d': 'mist', //mist/fog
+		'50n': 'mist',
+	};
+</script>
