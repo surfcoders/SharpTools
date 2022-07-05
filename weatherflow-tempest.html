@@ -518,7 +518,7 @@
     }
 
 
-    function getTempestWeather(getJustForecastData) {
+    function getTempestWeather(getStationDataAlso) {
         console.log(`Gathering Tempest Data from Station ${STATION_ID}`);
         if (isNullOrEmpty(API_KEY) && isNullOrEmpty(STATION_ID)) {
             console.log('Token and/or Station ID are null or empty');
@@ -588,14 +588,14 @@
             document.getElementById('lightning').innerHTML = lightningInfo;
             populateForecastGrid(tempestForecastData);
             console.log(tempestForecastData);
-            if (!getJustForecastData) {
+            if (getStationDataAlso) {
                 url = STATION_BASE_URL.replace('[_STATION_ID]',parameters.station_id);
                 url = url.replace('[_TOKEN]',parameters.token);
                 axios.get(url).then(function (response) {
                     console.log('Successfully retrieved station data');
                     tempestStationData = response.data;
                     let deviceName = '';
-                    if (!getJustForecastData) {
+                    if (!getStationDataAlso) {
                         let foundDevice = false;
                         for (let i = 0; i < tempestStationData.stations.length; i++) {
                             const station = tempestStationData.stations[i];
@@ -815,10 +815,10 @@
             document.getElementsByTagName('html')[0].style.background = gradientBackground;
         }
 
-        getTempestWeather();
+        getTempestWeather(true);
         // console.log(tempestData);
         // let interval = 5000; //3 hours in milliseconds
-        refreshTile = setInterval(getTempestWeather,refreshInterval, true);
+        refreshTile = setInterval(getTempestWeather,refreshInterval, false);
 
     });
 
