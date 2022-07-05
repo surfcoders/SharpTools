@@ -595,32 +595,30 @@
                     console.log('Successfully retrieved station data');
                     tempestStationData = response.data;
                     let deviceName = '';
-                    if (!getStationDataAlso) {
-                        let foundDevice = false;
-                        for (let i = 0; i < tempestStationData.stations.length; i++) {
-                            const station = tempestStationData.stations[i];
-                            if (station.station_id == Number(STATION_ID) ) {
-                                //Found station.  Loop through devices
-                                console.log(`Station ${station.station_id} found.  Searching for device...`);
-                                for (let j = 0; j < station.devices.length; j++) {
-                                    const device = station.devices[j];
-                                    if (device.device_type == 'ST') {
-                                        //Get the name
-                                        console.log(`${device.device_type} device found for Station ${station.station_id}: ${device.device_meta.name}`)
-                                        deviceName = device.device_meta.name;
-                                        foundDevice = true;
-                                        break;
-                                    }
+                    let foundDevice = false;
+                    for (let i = 0; i < tempestStationData.stations.length; i++) {
+                        const station = tempestStationData.stations[i];
+                        if (station.station_id == Number(STATION_ID) ) {
+                            //Found station.  Loop through devices
+                            console.log(`Station ${station.station_id} found.  Searching for device...`);
+                            for (let j = 0; j < station.devices.length; j++) {
+                                const device = station.devices[j];
+                                if (device.device_type == 'ST') {
+                                    //Get the name
+                                    console.log(`${device.device_type} device found for Station ${station.station_id}: ${device.device_meta.name}`)
+                                    deviceName = device.device_meta.name;
+                                    foundDevice = true;
+                                    break;
                                 }
                             }
-                            if (foundDevice) {
-                                break;
-                            }                   
                         }
-                        document.getElementById('station-info').innerHTML = `${tempestForecastData.location_name} (${deviceName})`;
-                        if (!foundDevice) {
-                            console.log(`Device not found for Station ID ${STATION_ID}.`)
-                        }
+                        if (foundDevice) {
+                            break;
+                        }                   
+                    }
+                    document.getElementById('station-info').innerHTML = `${tempestForecastData.location_name} (${deviceName})`;
+                    if (!foundDevice) {
+                        console.log(`Device not found for Station ID ${STATION_ID}.`)
                     }
                     console.log(tempestStationData);
                 });
