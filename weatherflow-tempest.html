@@ -523,7 +523,7 @@
 
     function setupWebSocket() {
         console.log(`Setting up WebSocket for device ${DEVICE_ID}`);
-        SOCKET_ID = getTimeStamp(); 
+        SOCKET_ID = getTimeStamp();  
         console.log(`Socket ID: ${SOCKET_ID}`);
         const url = WEBSOCKET_BASE_URL.replace('[_TOKEN]', API_KEY);
         console.log(`WebSocket URL: ${url}`);
