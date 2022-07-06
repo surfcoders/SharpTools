@@ -544,7 +544,7 @@
 
         socket.onmessage = function(event) {
             console.log(`[${SOCKET_ID}]: Data received from server:`);
-            console.log(event.data);
+            console.log(JSON.parse(event.data));
         };
 
         socket.onclose = function(event) {
