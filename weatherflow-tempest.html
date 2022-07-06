@@ -528,7 +528,7 @@
         const url = WEBSOCKET_BASE_URL.replace('[_TOKEN]', API_KEY);
         console.log(`WebSocket URL: ${url}`);
 
-        const socket = WebSocket(url);
+        const socket = new WebSocket(url);
         socket.onopen = function(e) {
             console.log('WebSocket opened.');
             console.log(e);
