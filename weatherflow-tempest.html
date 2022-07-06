@@ -625,22 +625,23 @@
                     //Update components
                     setWindDirectionIcon(direction);
                     document.getElementById('windInfo').innerHTML = `${direction} ${speed} ${speedUnit}`;
-                    let maxBarSpeed = speedThresholds[0];
+
                     //Tempest reads a max of 100 mph.
-                    switch (speed) {
-                        case (speed <=  speedThresholds[0]):
+                    let maxBarSpeed = speedThresholds[0];
+                    switch (true) {
+                        case ((speed >= 0) && (speed <=  speedThresholds[0])):
                             maxBarSpeed =  speedThresholds[0];
                             break;
-                        case (speed <=  speedThresholds[1]):
+                        case ((speed > speedThresholds[0]) && (speed <=  speedThresholds[1])):
                             maxBarSpeed =  speedThresholds[1];
                             break;
-                        case (speed <=  speedThresholds[2]):
+                        case ((speed > speedThresholds[1]) && (speed <=  speedThresholds[2])):
                             maxBarSpeed =  speedThresholds[2];
                             break;
-                        case (speed <=  speedThresholds[3]):
+                        case ((speed > speedThresholds[2]) && (speed <=  speedThresholds[3])):
                             maxBarSpeed =  speedThresholds[3];
                             break;
-                        case (speed <=  speedThresholds[4]):
+                        case ((speed > speedThresholds[3]) && (speed <=  speedThresholds[4])):
                             maxBarSpeed =  speedThresholds[4];
                             break;
                         default:
