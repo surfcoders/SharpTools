@@ -520,6 +520,11 @@
         document.getElementById('windDirection').style.transform = `rotate(${rotate})`;
     }
 
+    function getDirection(angle) {
+        var directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+        var index = Math.round(((angle %= 360) < 0 ? angle + 360 : angle) / 22.5) % 8;
+        return directions[index];
+    }
 
     function setupWebSocket() {
         console.log(`Setting up WebSocket for device ${DEVICE_ID}`);
@@ -544,7 +549,29 @@
 
         socket.onmessage = function(event) {
             console.log(`[${SOCKET_ID}]: Data received from server:`);
-            console.log(JSON.parse(event.data));
+            let windData = JSON.parse(event.data);
+            console.log(windData);
+            //Check if it is the same device ID and if the type = 'rapid_wind';
+            if (!isNullOrEmpty(windData.device_id) && !isNullOrEmpty(windData.type)) {
+                //Has values
+                if (windData.device_id == DEVICE_ID && windData.type.toUpperCase() == 'RAPID_WIND') {
+                    //Valid.  Get values
+                    let observation = windData.ob;
+                    let speed = observation[1];
+                    let direction = observation[2];
+                    //Convert speed to imperial if needed (data comes in metric)
+                    let speedUnit = 'kph';
+                    if (vm.units.toUpperCase() == 'IMPERIAL') {
+                        speed = Math.round((9*speed + 160) / 5);
+                        speedUnit = 'mph';
+                    } else {
+                        speed = Math.round(speed);
+                    }
+                    //Convert degrees to wind direction
+                    direction = getDirection(direction);
+                    console.log(`Speed: ${speed} ${speedUnit}, Direction: ${direction}`);
+                }
+            }
         };
 
         socket.onclose = function(event) {
