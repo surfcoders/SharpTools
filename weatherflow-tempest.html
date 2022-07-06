@@ -11,6 +11,7 @@
     let API_KEY = ''; //this is set in tile settings now
 	let STATION_ID = ''; //this is set in tile settings now
 	const REFRESH_INTERVAL = 3 * 60 * 60 * 1000; //3 hours in milliseconds
+    let DEVICE_ID = ''; //Used for WebSocket calls
 
 </script>
 
@@ -606,8 +607,10 @@
                                 const device = station.devices[j];
                                 if (device.device_type == 'ST') {
                                     //Get the name
-                                    console.log(`${device.device_type} device found for Station ${station.station_id}: ${device.device_meta.name}`)
+                                    console.log(`${device.device_type} device found for Station ${station.station_id}: ${device.device_meta.name}`);
                                     deviceName = device.device_meta.name;
+                                    DEVICE_ID = device.device_id;
+                                    console.log(`Device ID: ${device.device_id}`);
                                     foundDevice = true;
                                     break;
                                 }
