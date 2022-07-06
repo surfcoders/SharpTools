@@ -11,7 +11,8 @@
     let API_KEY = ''; //this is set in tile settings now
 	let STATION_ID = ''; //this is set in tile settings now
 	const REFRESH_INTERVAL = 3 * 60 * 60 * 1000; //3 hours in milliseconds
-    let DEVICE_ID = ''; //Used for WebSocket calls
+    let DEVICE_ID = null; //Used for WebSocket calls
+    let SOCKET_ID = ''; //Used for WebSocket calls
 
 </script>
 
@@ -340,6 +341,7 @@
 <script>
 	const FORECAST_BASE_URL = 'https://swd.weatherflow.com/swd/rest/better_forecast?station_id=[_STATION_ID]&units_temp=[_UNITS_TEMP]&units_wind=[_UNITS_WIND]&units_pressure=[_UNITS_PRESSURE]&units_precip=[_UNITS_PRECIP]&units_distance=[_UNITS_DISTANCE]&token=[_TOKEN]';
 	const STATION_BASE_URL = 'https://swd.weatherflow.com/swd/rest/stations/[_STATION_ID]?token=[_TOKEN]';
+    const WEBSOCKET_BASE_URL = `wss://ws.weatherflow.com/swd/data?token=[_TOKEN]`;
     const gradientBackground = 'linear-gradient(52deg,rgba(12, 5, 147, 1) 0%,rgba(16, 16, 172, 1) 30%,rgba(113, 0, 255, 1) 100%)';
     const humidityIcon = 'https://tempestwx.com/images/cc-humidity.svg';
     const pressureIcon = 'https://tempestwx.com/images/cc-pressure-trend-arrow.svg';
@@ -519,6 +521,54 @@
     }
 
 
+    function setupWebSocket() {
+        console.log(`Setting up WebSocket for device ${DEVICE_ID}`);
+        SOCKET_ID = getTimeStamp(); 
+        console.log(`Socket ID: ${SOCKET_ID}`);
+        const url = WEBSOCKET_BASE_URL.replace('[_TOKEN]', API_KEY);
+        console.log(`WebSocket URL: ${url}`);
+
+        const socket = WebSocket(url);
+        socket.onopen = function(e) {
+            console.log('WebSocket opened.');
+            console.log(e);
+
+            const startListeningRapidWind = {
+                type: 'listen_rapid_start',
+                device_id: DEVICE_ID,
+                id: SOCKET_ID
+            };
+            socket.send(startListeningRapidWind);
+            console.log('Sent message to start listening...');
+        };
+
+        socket.onmessage = function(event) {
+            console.log(`[${SOCKET_ID}]: Data received from server: ${event.data}`);
+        };
+
+        socket.onclose = function(event) {
+            if (event.wasClean) {
+                console.log(`[${SOCKET_ID}]: Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+            } else {
+                // e.g. server process killed or network down
+                // event.code is usually 1006 in this case
+                console.log(`[${SOCKET_ID}]: Connection died. code=${event.code} reason=${event.reason}`);
+            }
+        };
+        socket.onerror = function(error) {
+            console.log(`[${SOCKET_ID}]: Error - ${error.message}`);
+        };                
+
+        console.log(`WebSocket setup for device ${DEVICE_ID} completed.`);
+        return;
+    }
+
+    function getTimeStamp() {
+        let timestamp = new Date();
+        return timestamp.getTime().toString();
+    }
+
+
     function getTempestWeather(getStationDataAlso) {
         console.log(`Gathering Tempest Data from Station ${STATION_ID}`);
         if (isNullOrEmpty(API_KEY) && isNullOrEmpty(STATION_ID)) {
@@ -624,6 +674,8 @@
                     if (foundDevice) {
                         console.log(`Location Name: ${tempestForecastData.location_name}`);
                         document.getElementById('station-info').innerHTML = `${tempestForecastData.location_name} (${deviceName})`;
+                        //Setup websocket
+                        setupWebSocket();
                     } else {
                         console.log(`Device not found for Station ID ${STATION_ID}.`)
                     }
