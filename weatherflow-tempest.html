@@ -667,9 +667,9 @@
             document.getElementById('pressure').innerHTML = `${tempestForecastData.current_conditions.sea_level_pressure} ${tempestForecastData.units.units_pressure} - ${tempestForecastData.current_conditions.pressure_trend}`;
             setPressureTrendIcon(tempestForecastData.current_conditions.pressure_trend);
             document.getElementById('uvIndex').innerHTML = `${tempestForecastData.current_conditions.uv} UV Index`;
-            setWindDirectionIcon(tempestForecastData.current_conditions.wind_direction_cardinal);
+            // setWindDirectionIcon(tempestForecastData.current_conditions.wind_direction_cardinal);
             // document.getElementById('windInfo').innerHTML = `${tempestForecastData.current_conditions.wind_direction_cardinal} ${tempestForecastData.current_conditions.wind_avg} ${tempestForecastData.units.units_wind}`;
-            // let lightningInfo = `${epochToDate(tempestForecastData.current_conditions.lightning_strike_last_epoch, true)} (${tempestForecastData.current_conditions.lightning_strike_last_distance_msg})`;
+            let lightningInfo = `${epochToDate(tempestForecastData.current_conditions.lightning_strike_last_epoch, true)} (${tempestForecastData.current_conditions.lightning_strike_last_distance_msg})`;
             document.getElementById('lightning').innerHTML = lightningInfo;
             populateForecastGrid(tempestForecastData);
             console.log(tempestForecastData);
