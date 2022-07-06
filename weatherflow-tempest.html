@@ -647,6 +647,7 @@
                             maxBarSpeed =  speedThresholds[4];
                             break;
                     }
+                    console.log(`Max bar speed: ${maxBarSpeed}`);
                     let percentBar = Math.round(speed / maxBarSpeed * 100);
                     document.getElementById('rapid-wind').style = `width: ${percentBar}%`;
 
