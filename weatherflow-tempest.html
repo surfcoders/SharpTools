@@ -103,31 +103,36 @@
                         <td class="weather-icon" align="center">
                             <img src="" id="humidityIcon">
                         </td>
-                        <td id="humidity"></td>
+                        <td id="humidity" colspan="2"></td>
                     </tr>
                     <tr class="day">
                         <td class="weather-icon" align="center">
                             <img src="" id="pressureIcon">
                         </td>
-                        <td id="pressure"></td>
+                        <td id="pressure" colspan="2"></td>
                     </tr>
                     <tr class="day">
                         <td class="weather-icon" align="center">
                             <img src="" id="uvIcon">
                         </td>
-                        <td id="uvIndex"></td>
+                        <td id="uvIndex" colspan="2"></td>
                     </tr>
                     <tr class="day">
                         <td class="weather-icon" align="center">
                             <img src="" id="windDirection">
                         </td>
                         <td id="windInfo"></td>
+                        <td id="windGauge">
+                            <div class="rapid-wind-bar" id="rapid-wind-bar">
+                                <div class="rapid-wind" id="rapid-wind" style="width:10%;"></div>
+                            </div>                            
+                        </td>
                     </tr>
                     <tr class="day">
                         <td class="weather-icon" align="center">
                             <img src="" id="lightningIcon">
                         </td>
-                        <td id="lightning"></td>
+                        <td id="lightning" colspan="2"></td>
                     </tr>
                 </tbody>
             </table>
@@ -338,7 +343,26 @@
     #windDirection {
         transition:all 1.5s;
     }
-    
+    .rapid-wind-bar {
+        height: 8px;
+        margin: 3px 0 0 30px;
+        width: 100px;
+    }
+    .rapid-wind, .rapid-wind-bar {
+        border-radius: 20px;
+    }
+    .rapid-wind-bar {
+        background-image: linear-gradient(90deg,#1b75d5 24.5%,rgba(27,117,213,.5) 0,rgba(27,117,213,.5) 25.5%,#1b75d5 0,#1b75d5 49.5%,rgba(27,117,213,.5) 0,rgba(27,117,213,.5) 50.5%,#1b75d5 0,#1b75d5 74.5%,rgba(27,117,213,.5) 0,rgba(27,117,213,.5) 75.5%,#1b75d5 0,#1b75d5);
+    }    
+
+    .rapid-wind {
+        background-color: #fff;
+        transition: all 1s ease;
+        width: 10%;
+        height: 100%;
+    }    
+
+
 </style>
 
 <script>
