@@ -522,7 +522,7 @@
 
     function getDirection(angle) {
         var directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
-        var index = Math.round(((angle %= 360) < 0 ? angle + 360 : angle) / 22.5) % 8;
+        var index = Math.round(((angle %= 360) < 0 ? angle + 360 : angle) / 22.5) % 16;
         return directions[index];
     }
 
