@@ -538,7 +538,7 @@
                 device_id: DEVICE_ID,
                 id: SOCKET_ID
             };
-            socket.send(startListeningRapidWind);
+            socket.send(JSON.stringify(startListeningRapidWind));
             console.log('Sent message to start listening...');
         };
 
