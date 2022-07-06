@@ -562,10 +562,12 @@
                     //Convert speed to imperial if needed (data comes in metric)
                     let speedUnit = 'kph';
                     if (vm.units.toUpperCase() == 'IMPERIAL') {
-                        speed = Math.round((9*speed + 160) / 5);
+                        // Convert m/s to mph
+                        speed = Math.round(speed / (1609.34 / 3600));
                         speedUnit = 'mph';
                     } else {
-                        speed = Math.round(speed);
+                        //Convert m/s to kph
+                        speed = Math.round(speed * 18 / 5);
                     }
                     //Convert degrees to wind direction
                     direction = getDirection(direction);
