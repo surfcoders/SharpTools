@@ -543,7 +543,8 @@
         };
 
         socket.onmessage = function(event) {
-            console.log(`[${SOCKET_ID}]: Data received from server: ${event.data}`);
+            console.log(`[${SOCKET_ID}]: Data received from server:`);
+            console.log(event.data);
         };
 
         socket.onclose = function(event) {
