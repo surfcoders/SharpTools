@@ -606,6 +606,7 @@
                     let direction = observation[2];
                     //Convert speed to imperial if needed (data comes in metric)
                     let speedUnit = 'kph';
+                    let speedThresholds = [20, 40, 60, 80, 100];
                     if (vm.units.toUpperCase() == 'IMPERIAL') {
                         // Convert m/s to mph
                         speed = Math.round(speed / (1609.34 / 3600));
@@ -613,6 +614,10 @@
                     } else {
                         //Convert m/s to kph
                         speed = Math.round(speed * 18 / 5);
+                        for (let i = 0; i < speedThresholds.length; i++) {
+                            // Convert mph to kph
+                            speedThresholds[i] = speedThresholds[i] * 1.609344;
+                        }
                     }
                     //Convert degrees to wind direction
                     direction = getDirection(direction);
@@ -620,7 +625,28 @@
                     //Update components
                     setWindDirectionIcon(direction);
                     document.getElementById('windInfo').innerHTML = `${direction} ${speed} ${speedUnit}`;
-                    let maxBarSpeed = 20;
+                    let maxBarSpeed = speedThresholds[0];
+                    //Tempest reads a max of 100 mph.
+                    switch (speed) {
+                        case (speed <=  speedThresholds[0]):
+                            maxBarSpeed =  speedThresholds[0];
+                            break;
+                        case (speed <=  speedThresholds[1]):
+                            maxBarSpeed =  speedThresholds[1];
+                            break;
+                        case (speed <=  speedThresholds[2]):
+                            maxBarSpeed =  speedThresholds[2];
+                            break;
+                        case (speed <=  speedThresholds[3]):
+                            maxBarSpeed =  speedThresholds[3];
+                            break;
+                        case (speed <=  speedThresholds[4]):
+                            maxBarSpeed =  speedThresholds[4];
+                            break;
+                        default:
+                            maxBarSpeed =  speedThresholds[4];
+                            break;
+                    }
                     let percentBar = Math.round(speed / maxBarSpeed * 100);
                     document.getElementById('rapid-wind').style = `width: ${percentBar}%`;
 
