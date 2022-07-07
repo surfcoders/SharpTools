@@ -104,19 +104,19 @@
                         <td class="weather-icon" align="center">
                             <img src="" id="humidityIcon">
                         </td>
-                        <td id="humidity" colspan="2"></td>
+                        <td id="humidity" colspan="3"></td>
                     </tr>
                     <tr class="day">
                         <td class="weather-icon" align="center">
                             <img src="" id="pressureIcon">
                         </td>
-                        <td id="pressure" colspan="2"></td>
+                        <td id="pressure" colspan="3"></td>
                     </tr>
                     <tr class="day">
                         <td class="weather-icon" align="center">
                             <img src="" id="uvIcon">
                         </td>
-                        <td id="uvIndex" colspan="2"></td>
+                        <td id="uvIndex" colspan="3"></td>
                     </tr>
                     <tr class="day">
                         <td class="weather-icon" align="center">
@@ -128,12 +128,13 @@
                                 <div class="rapid-wind" id="rapid-wind" style="width:10%;"></div>
                             </div>                            
                         </td>
+                        <td id="maxWindSpeed"></td>
                     </tr>
                     <tr class="day">
                         <td class="weather-icon" align="center">
                             <img src="" id="lightningIcon">
                         </td>
-                        <td id="lightning" colspan="2"></td>
+                        <td id="lightning" colspan="3"></td>
                     </tr>
                 </tbody>
             </table>
@@ -670,6 +671,7 @@
                             break;
                     }
                     console.log(`Max bar speed: ${maxBarSpeed}`);
+                    document.getElementById('maxWindSpeed').innerHTML = Math.round(maxBarSpeed).toString();
                     let percentBar = Math.round(speed / maxBarSpeed * 100);
                     document.getElementById('rapid-wind').style = `width: ${percentBar}%`;
 
