@@ -629,12 +629,13 @@
                     //Update components
                     setWindDirectionIcon(direction);
                     let windInfo = document.getElementById('windInfo');
-                    windInfo.style = 'opacity: 0;';
-                    setTimeout(function() {
-                        // Add tasks to do
-                        windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
-                    }, 1000);
-                    windInfo.style = 'opacity: 1;';
+                    // windInfo.style = 'opacity: 0;';
+                    windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
+                    // setTimeout(function() {
+                    //     // Add tasks to do
+                    //     windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
+                    // }, 1000);
+                    // windInfo.style = 'opacity: 1;';
 
                     //Tempest reads a max of 100 mph.
                     let maxBarSpeed = speedThresholds[0];
