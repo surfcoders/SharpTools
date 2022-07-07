@@ -631,14 +631,15 @@
                     setWindDirectionIcon(direction);
                     let windInfo = document.getElementById('windInfo');
                     // windInfo.style = 'opacity: 0;';
-                    windInfo.addEventListener('animationend', function changeWindInfo(el) {
-                        // do something
-                        let windInfo = document.getElementById('windInfo');
-                        windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
-                        windInfo.classList.add('animate__animated', 'animate__fadeIn');
-                        windInfo.removeEventListener('animationend', changeWindInfo);
-                    });
-                    windInfo.classList.add('animate__animated', 'animate__fadeOut');
+                    // windInfo.addEventListener('animationend', function changeWindInfo(el) {
+                    //     // do something
+                    //     let windInfo = document.getElementById('windInfo');
+                    //     windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
+                    //     windInfo.classList.add('animate__animated', 'animate__fadeIn');
+                    //     windInfo.removeEventListener('animationend', changeWindInfo);
+                    // });
+                    // windInfo.classList.add('animate__animated', 'animate__fadeOut');
+                    windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
 
                     // setTimeout(function() {
                     //     // Add tasks to do
