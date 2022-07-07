@@ -344,6 +344,10 @@
         transition:all 1.5s;
     }
 
+    #windInfo {
+        transition: opacity 1s
+    }
+
     #pressureIcon {
         transition:all 1.5s;
     }
@@ -624,8 +628,11 @@
                     console.log(`Speed: ${speed} ${speedUnit}, Direction: ${direction} (${observation[2]})`);
                     //Update components
                     setWindDirectionIcon(direction);
+                    let windInfo = document.getElementById('windInfo');
+                    windInfo.style.opacity = '0';
                     document.getElementById('windInfo').innerHTML = `${direction} ${speed} ${speedUnit}`;
-
+                    windInfo.style.opacity = '1';
+                    
                     //Tempest reads a max of 100 mph.
                     let maxBarSpeed = speedThresholds[0];
                     switch (true) {
