@@ -53,6 +53,7 @@
 <script src="https://unpkg.com/axios@0.27.2"></script>
 <script src="https://cdn.sharptools.io/js/custom-tiles.js"></script>
 <script src="https://polyfill.io/v3/polyfill.min.js?features=Intl"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
 
 <div>
     <!-- HEADER data -->
@@ -344,9 +345,9 @@
         transition:all 1.5s;
     }
 
-    #windInfo {
+    /* #windInfo {
         transition: opacity 1s;
-    }
+    } */
 
     #pressureIcon {
         transition:all 1.5s;
@@ -630,7 +631,15 @@
                     setWindDirectionIcon(direction);
                     let windInfo = document.getElementById('windInfo');
                     // windInfo.style = 'opacity: 0;';
-                    windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
+                    windInfo.addEventListener('animationend', () => {
+                        // do something
+                        let windInfo = document.getElementById('windInfo');
+                        windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
+                        windInfo.classList.add('animate__animated', 'animate__fadeIn');
+                        windInfo.removeEventListener('animationend');
+                    });
+                    windInfo.classList.add('animate__animated', 'animate__fadeOut');
+
                     // setTimeout(function() {
                     //     // Add tasks to do
                     //     windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
