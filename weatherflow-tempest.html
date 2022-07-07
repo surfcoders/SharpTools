@@ -631,12 +631,12 @@
                     setWindDirectionIcon(direction);
                     let windInfo = document.getElementById('windInfo');
                     // windInfo.style = 'opacity: 0;';
-                    windInfo.addEventListener('animationend', () => {
+                    windInfo.addEventListener('animationend', function changeWindInfo(el) {
                         // do something
-                        let windInfo = document.getElementById('windInfo');
-                        windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
-                        windInfo.classList.add('animate__animated', 'animate__fadeIn');
-                        windInfo.removeEventListener('animationend');
+                        // let windInfo = document.getElementById('windInfo');
+                        el.innerHTML = `${direction} ${speed} ${speedUnit}`;
+                        el.classList.add('animate__animated', 'animate__fadeIn');
+                        el.removeEventListener('animationend', changeWindInfo);
                     });
                     windInfo.classList.add('animate__animated', 'animate__fadeOut');
 
