@@ -55,9 +55,10 @@
 <script src="https://unpkg.com/axios@0.27.2"></script>
 <script src="https://cdn.sharptools.io/js/custom-tiles.js"></script>
 <script src="https://polyfill.io/v3/polyfill.min.js?features=Intl"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+<!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" /> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
-<div>
+<div id="weatherflow-tempest">
     <!-- HEADER data -->
     <div class="tile-header" id="tile-header">
         <!-- Station data -->
@@ -142,56 +143,58 @@
                     </tr>
                 </tbody>
             </table>
-            <table class="forecast">
-                <tbody>
-                    <tr class="day" id="forecast-1">
-                        <td id="forecast-1-dow">DOW</td>
-                        <td class="weather-icon" align="center">
-                            <img src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/possibly-rainy-day.svg" id="forecast-1-img">
-                        </td>
-                        <td id="forecast-1-precip" align="right">0%</td>
-                        <td id="forecast-1-high" align="right">dayHigh</td>
-                        <td id="forecast-1-low" align="right">dayLow</td>
-                    </tr>
-                    <tr class="day" id="forecast-2">
-                        <td id="forecast-2-dow">DOW</td>
-                        <td class="weather-icon" align="center">
-                            <img src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/possibly-rainy-day.svg" id="forecast-2-img">
-                        </td>
-                        <td id="forecast-2-precip" align="right">0%</td>
-                        <td id="forecast-2-high" align="right">dayHigh</td>
-                        <td id="forecast-2-low" align="right">dayLow</td>
-                    </tr>
-                    <tr class="day" id="forecast-3">
-                        <td id="forecast-3-dow">DOW</td>
-                        <td class="weather-icon" align="center">
-                            <img src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/possibly-rainy-day.svg" id="forecast-3-img">
-                        </td>
-                        <td id="forecast-3-precip" align="right">0%</td>
-                        <td id="forecast-3-high" align="right">dayHigh</td>
-                        <td id="forecast-3-low" align="right">dayLow</td>
-                    </tr>
-                    <tr class="day" id="forecast-4">
-                        <td id="forecast-4-dow">DOW</td>
-                        <td class="weather-icon" align="center">
-                            <img src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/possibly-rainy-day.svg" id="forecast-4-img">
-                        </td>
-                        <td id="forecast-4-precip" align="right">0%</td>
-                        <td id="forecast-4-high" align="right">dayHigh</td>
-                        <td id="forecast-4-low" align="right">dayLow</td>
-                    </tr>
-                    <tr class="day" id="forecast-5">
-                        <td id="forecast-5-dow">DOW</td>
-                        <td class="weather-icon" align="center">
-                            <img src="https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/possibly-rainy-day.svg" id="forecast-5-img">
-                        </td>
-                        <td id="forecast-5-precip" align="right">100%</td>
-                        <td id="forecast-5-high" align="right">dayHigh</td>
-                        <td id="forecast-5-low" align="right">dayLow</td>
-                    </tr>
+            <div id="forecast">
+                <table class="forecast">
+                    <tbody>
+                        <tr class="day" id="forecast-1">
+                            <td id="forecast-1-dow"></td>
+                            <td class="weather-icon" align="center">
+                                <img src="" id="forecast-1-img">
+                            </td>
+                            <td id="forecast-1-precip" align="right"></td>
+                            <td id="forecast-1-high" align="right"></td>
+                            <td id="forecast-1-low" align="right"></td>
+                        </tr>
+                        <tr class="day" id="forecast-2">
+                            <td id="forecast-2-dow">DOW</td>
+                            <td class="weather-icon" align="center">
+                                <img src="" id="forecast-2-img">
+                            </td>
+                            <td id="forecast-2-precip" align="right"></td>
+                            <td id="forecast-2-high" align="right"></td>
+                            <td id="forecast-2-low" align="right"></td>
+                        </tr>
+                        <tr class="day" id="forecast-3">
+                            <td id="forecast-3-dow"></td>
+                            <td class="weather-icon" align="center">
+                                <img src="" id="forecast-3-img">
+                            </td>
+                            <td id="forecast-3-precip" align="right"></td>
+                            <td id="forecast-3-high" align="right"></td>
+                            <td id="forecast-3-low" align="right"></td>
+                        </tr>
+                        <tr class="day" id="forecast-4">
+                            <td id="forecast-4-dow"></td>
+                            <td class="weather-icon" align="center">
+                                <img src="" id="forecast-4-img">
+                            </td>
+                            <td id="forecast-4-precip" align="right"></td>
+                            <td id="forecast-4-high" align="right"></td>
+                            <td id="forecast-4-low" align="right"></td>
+                        </tr>
+                        <tr class="day" id="forecast-5">
+                            <td id="forecast-5-dow"></td>
+                            <td class="weather-icon" align="center">
+                                <img src="" id="forecast-5-img">
+                            </td>
+                            <td id="forecast-5-precip" align="right"></td>
+                            <td id="forecast-5-high" align="right"></td>
+                            <td id="forecast-5-low" align="right"></td>
+                        </tr>
 
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
