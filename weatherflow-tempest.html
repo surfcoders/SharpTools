@@ -904,7 +904,7 @@
                     console.log(tempestStationData);
                 });
                 //Set wind info for first load, then let websockets update it afterwards
-                document.getElementById('windInfo').innerHTML = `${tempestForecastData.current_conditions.wind_direction_cardinal} ${tempestForecastData.current_conditions.wind_avg} ${tempestForecastData.units.units_wind}`;
+                document.getElementById('windInfoData').innerHTML = `${tempestForecastData.current_conditions.wind_direction_cardinal} ${tempestForecastData.current_conditions.wind_avg} ${tempestForecastData.units.units_wind}`;
                 let lightningInfo = `${epochToDate(tempestForecastData.current_conditions.lightning_strike_last_epoch, true)} (${tempestForecastData.current_conditions.lightning_strike_last_distance_msg})`;
             }
         });
