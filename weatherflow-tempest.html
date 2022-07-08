@@ -909,13 +909,20 @@
 
     function populateForecastGrid(data) {
         let forecastData = data.forecast.daily;
+        //Start the day after today if daily
+        let startPoint = 1;
+        let endPoint = 5;
+
         if (forecastType == 'hourly') {
             forecastData = data.forecast.hourly;
+        } else {
+            startPoint = 0;
+            endPoint = 4;
         }
+
         let iconURLTemplate = `https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/[_CONDITION].svg`;
 
-        //Start the day after today
-        for (let i = 1; i <= 5; i++) {
+        for (let i = startPoint; i <= endPoint; i++) {
             const forecast = forecastData[i];
             let iconURL = iconURLTemplate.replace('[_CONDITION]',forecast.icon);
             let elemIDTemplate = `forecast-${i}-`;
