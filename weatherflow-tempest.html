@@ -910,6 +910,9 @@
     function populateForecastGrid(data) {
         let forecastData = data.forecast.daily;
         //Start the day after today if daily
+        if (forecastType == 'hourly') {
+            forecastData = data.forecast.hourly;
+        }
 
         let iconURLTemplate = `https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/[_CONDITION].svg`;
 
