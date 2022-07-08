@@ -12,7 +12,9 @@
 	let STATION_ID = ''; //this is set in tile settings now
 	const REFRESH_INTERVAL = 3 * 60 * 60 * 1000; //3 hours in milliseconds
     let DEVICE_ID = null; //Used for WebSocket calls
-    let SOCKET_ID = ''; //Used for WebSocket calls
+    let SOCKET_ID1 = ''; //Used for WebSocket calls
+    let SOCKET_ID2 = ''; //Used for WebSocket calls
+    let SOCKET_ID3 = ''; //Used for WebSocket calls
 
 </script>
 
@@ -585,8 +587,6 @@
 
     function setupWebSocket() {
         console.log(`Setting up WebSocket for device ${DEVICE_ID}`);
-        SOCKET_ID = getTimeStamp();  
-        console.log(`Socket ID: ${SOCKET_ID}`);
         const url = WEBSOCKET_BASE_URL.replace('[_TOKEN]', API_KEY);
         console.log(`WebSocket URL: ${url}`);
 
@@ -595,25 +595,65 @@
             console.log('WebSocket opened.');
             console.log(e);
 
+            SOCKET_ID1 = getTimeStamp();  
+            console.log(`Socket ID1: ${SOCKET_ID1}`);
             const startListeningRapidWind = {
                 type: 'listen_rapid_start',
                 device_id: DEVICE_ID,
-                id: SOCKET_ID
+                id: SOCKET_ID1
             };
             socket.send(JSON.stringify(startListeningRapidWind));
-            console.log('Sent message to start listening...');
+            console.log('Sent message to start listening for rapid wind events...');
+
+            SOCKET_ID2 = getTimeStamp();  
+            console.log(`Socket ID2: ${SOCKET_ID2}`);
+            const startListeningObservation = {
+                type: 'listen_start',
+                device_id: DEVICE_ID,
+                id: SOCKET_ID2
+            };
+            socket.send(JSON.stringify(startListeningObservation));
+            console.log('Sent message to start listening for station observations...');
+
+            SOCKET_ID3 = getTimeStamp();  
+            console.log(`Socket ID3: ${SOCKET_ID3}`);
+            const startListeningEvents = {
+                type: 'listen_start_events',
+                device_id: DEVICE_ID,
+                id: SOCKET_ID3
+            };
+            socket.send(JSON.stringify(startListeningEvents));
+            console.log('Sent message to start listening for station events...');
+
+
         };
 
         socket.onmessage = function(event) {
-            console.log(`[${SOCKET_ID}]: Data received from server:`);
-            let windData = JSON.parse(event.data);
-            console.log(windData);
+            let eventData = JSON.parse(event.data);
+            let SOCKET_ID = SOCKET_ID1;
+            switch (eventData.type.toUpperCase()) {
+                case 'RAPID_WIND':
+                    SOCKET_ID = SOCKET_ID1;
+                    break;
+                case 'OBS_ST':
+                    SOCKET_ID = SOCKET_ID2;
+                    break;
+                case 'EVT_PRECIP':
+                case 'EVT_STRIKE':
+                    SOCKET_ID = SOCKET_ID3;
+                    break;
+                default:
+                    SOCKET_ID = SOCKET_ID1;
+                    break;
+            }
+            console.log(`[${SOCKET_ID}]: ${eventData.type} Data received from server:`);
+            console.log(eventData);
             //Check if it is the same device ID and if the type = 'rapid_wind';
-            if (!isNullOrEmpty(windData.device_id) && !isNullOrEmpty(windData.type)) {
+            if (!isNullOrEmpty(eventData.device_id) && !isNullOrEmpty(eventData.type)) {
                 //Has values
-                if (windData.device_id == DEVICE_ID && windData.type.toUpperCase() == 'RAPID_WIND') {
+                if (eventData.device_id == DEVICE_ID && eventData.type.toUpperCase() == 'RAPID_WIND') {
                     //Valid.  Get values
-                    let observation = windData.ob;
+                    let observation = eventData.ob;
                     let speed = observation[1];
                     let direction = observation[2];
                     //Convert speed to imperial if needed (data comes in metric)
@@ -681,6 +721,18 @@
                     let percentBar = Math.round(speed / maxBarSpeed * 100);
                     document.getElementById('rapid-wind').style = `width: ${percentBar}%`;
 
+                }
+                if (eventData.device_id == DEVICE_ID && eventData.type.toUpperCase() == 'OBS_ST') {
+                    //Station observation received
+                    console.log('Station observation received...')
+                }
+                if (eventData.device_id == DEVICE_ID && eventData.type.toUpperCase() == 'EVT_PRECIP') {
+                    //Rain start event received
+                    console.log('Rain starting event received...')
+                }
+                if (eventData.device_id == DEVICE_ID && eventData.type.toUpperCase() == 'EVT_STRIKE') {
+                    //Lightning strike event received
+                    console.log('Lightning strike event received...')
                 }
             }
         };
