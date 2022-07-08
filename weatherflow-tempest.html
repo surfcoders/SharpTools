@@ -919,38 +919,43 @@
 
         let iconURLTemplate = `https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/[_CONDITION].svg`;
 
-        for (let i = 1; i <= 5; i++) {
-            let index = i;
-            if (forecastType == 'hourly') {
-                index = i - 1;
-            }
-            const forecast = forecastData[index];
-            let iconURL = iconURLTemplate.replace('[_CONDITION]',forecast.icon);
-            let elemIDTemplate = `forecast-${i}-`;
-            //Start replacing
-            let elemID = `${elemIDTemplate}dow`;
-            if (forecastType == 'daily') {
-                document.getElementById(elemID).innerHTML = getDoW(forecast.day_start_local);
-            } else {
-                document.getElementById(elemID).innerHTML = epochToTime(forecast.time);
-            }
-            elemID = `${elemIDTemplate}img`;
-            document.getElementById(elemID).src = iconURL;
-            elemID = `${elemIDTemplate}precip`;
-            document.getElementById(elemID).innerHTML = `${forecast.precip_probability}%`;
-            if (forecastType == 'daily') {
-                elemID = `${elemIDTemplate}high`;
-                document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temp_high)}`;
-                elemID = `${elemIDTemplate}low`;
-                document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temp_low)}`;
-            } else {
-                elemID = `${elemIDTemplate}high`;
-                document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temperature)}`;
-                elemID = `${elemIDTemplate}low`;
-                document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.feels_like)}`;
-            }
+        $('#forecast').fadeOut('slow', function() {
+            // $(this).text(quotes[Math.floor(Math.random() * quotes.length)]);
+            for (let i = 1; i <= 5; i++) {
+                let index = i;
+                if (forecastType == 'hourly') {
+                    index = i - 1;
+                }
+                const forecast = forecastData[index];
+                let iconURL = iconURLTemplate.replace('[_CONDITION]',forecast.icon);
+                let elemIDTemplate = `forecast-${i}-`;
+                //Start replacing
+                let elemID = `${elemIDTemplate}dow`;
+                if (forecastType == 'daily') {
+                    document.getElementById(elemID).innerHTML = getDoW(forecast.day_start_local);
+                } else {
+                    document.getElementById(elemID).innerHTML = epochToTime(forecast.time);
+                }
+                elemID = `${elemIDTemplate}img`;
+                document.getElementById(elemID).src = iconURL;
+                elemID = `${elemIDTemplate}precip`;
+                document.getElementById(elemID).innerHTML = `${forecast.precip_probability}%`;
+                if (forecastType == 'daily') {
+                    elemID = `${elemIDTemplate}high`;
+                    document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temp_high)}`;
+                    elemID = `${elemIDTemplate}low`;
+                    document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temp_low)}`;
+                } else {
+                    elemID = `${elemIDTemplate}high`;
+                    document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temperature)}`;
+                    elemID = `${elemIDTemplate}low`;
+                    document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.feels_like)}`;
+                }
 
-        }
+            }
+            $(this).fadeIn('slow');
+        });
+
     }
     function getDoW(epoch) {
         let dt = new Date(epoch * 1000);
