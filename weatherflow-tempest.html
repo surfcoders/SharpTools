@@ -125,7 +125,7 @@
                         <td class="weather-icon" align="center">
                             <img src="" id="windDirection">
                         </td>
-                        <td id="windInfo" width="40%"><div id="windInfoDiv"></div></td>
+                        <td id="windInfo" width="40%"><div id="windInfoData"></div></td>
                         <td id="windGauge" width="40%">
                             <div class="rapid-wind-bar" id="rapid-wind-bar">
                                 <div class="rapid-wind" id="rapid-wind" style="width:10%;"></div>
@@ -691,7 +691,7 @@
                     console.log(`Speed: ${speed} ${speedUnit}, Direction: ${direction} (${observation[2]})`);
                     //Update components
                     setWindDirectionIcon(direction);
-                    let windInfo = document.getElementById('windInfoDiv');
+                    let windInfo = document.getElementById('windInfoData');
                     // windInfo.style = 'opacity: 0;';
                     // windInfo.addEventListener('animationend', function changeWindInfo(el) {
                     //     // do something
