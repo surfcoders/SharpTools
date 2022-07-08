@@ -691,23 +691,12 @@
                     console.log(`Speed: ${speed} ${speedUnit}, Direction: ${direction} (${observation[2]})`);
                     //Update components
                     setWindDirectionIcon(direction);
-                    let windInfo = document.getElementById('windInfoData');
-                    // windInfo.style = 'opacity: 0;';
-                    // windInfo.addEventListener('animationend', function changeWindInfo(el) {
-                    //     // do something
-                    //     let windInfo = document.getElementById('windInfo');
-                    //     windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
-                    //     windInfo.classList.add('animate__animated', 'animate__fadeIn');
-                    //     windInfo.removeEventListener('animationend', changeWindInfo);
-                    // });
-                    // windInfo.classList.add('animate__animated', 'animate__fadeOut');
-                    windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
-
-                    // setTimeout(function() {
-                    //     // Add tasks to do
-                    //     windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
-                    // }, 1000);
-                    // windInfo.style = 'opacity: 1;';
+                    $('#windInfoData').fadeOut('slow', function() {
+                        // $(this).text(quotes[Math.floor(Math.random() * quotes.length)]);
+                        let windInfo = document.getElementById('windInfoData');
+                        windInfo.innerHTML = `${direction} ${speed} ${speedUnit}`;
+                        $(this).fadeIn('slow');
+                    });
 
                     //Tempest reads a max of 100 mph.
                     let maxBarSpeed = speedThresholds[0];
