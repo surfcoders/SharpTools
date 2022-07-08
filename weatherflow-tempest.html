@@ -407,6 +407,7 @@
     const uvIcon = 'https://tempestwx.com/images/cc-uv.svg';
     const windDirectionIcon = 'https://tempestwx.com/images/cc-wind.svg';
     const lightningIcon = 'https://tempestwx.com/images/cc-lightning.svg';
+    
 
     document.getElementById('humidityIcon').src = humidityIcon;
     document.getElementById('pressureIcon').src = pressureIcon;
@@ -421,6 +422,7 @@
     let vm = this;
     let refreshTile = null;
     let refreshInterval = 30000; //default
+    let forecastType = '';
 
 	const LANGUAGE_MAP = {
 		af: { feels_like: 'Hitte-indeks' },
@@ -506,6 +508,16 @@
         
         return newDateString;
     }
+
+    function epochToTime(epoch) {
+        let newDate = new Date(epoch * 1000);
+        let newTimeString = newDate.toLocaleTimeString('en-US', {
+                hour:"2-digit",
+                minute:"2-digit"
+        });
+        return newTimeString;
+    }
+
     function setPressureTrendIcon(pressureTrend) {
         let rotate = '0deg';
         switch (pressureTrend) {
@@ -828,6 +840,22 @@
             // document.getElementById('windInfo').innerHTML = `${tempestForecastData.current_conditions.wind_direction_cardinal} ${tempestForecastData.current_conditions.wind_avg} ${tempestForecastData.units.units_wind}`;
             let lightningInfo = `${epochToDate(tempestForecastData.current_conditions.lightning_strike_last_epoch, true)} (${tempestForecastData.current_conditions.lightning_strike_last_distance} ${tempestForecastData.units.units_distance} away)`;
             document.getElementById('lightning').innerHTML = lightningInfo;
+            
+            // Swap the forecast type
+            switch (forecastType) {
+                case '':
+                    forecastType = 'daily'
+                    break;
+                case 'daily':
+                    forecastType = 'hourly'
+                    break;
+                case 'hourly':
+                    forecastType = 'daily'
+                    break;
+                default:
+                    forecastType = 'daily'
+                    break;
+            }
             populateForecastGrid(tempestForecastData);
             console.log(tempestForecastData);
             if (getStationDataAlso) {
@@ -876,95 +904,14 @@
                 document.getElementById('windInfo').innerHTML = `${tempestForecastData.current_conditions.wind_direction_cardinal} ${tempestForecastData.current_conditions.wind_avg} ${tempestForecastData.units.units_wind}`;
                 let lightningInfo = `${epochToDate(tempestForecastData.current_conditions.lightning_strike_last_epoch, true)} (${tempestForecastData.current_conditions.lightning_strike_last_distance_msg})`;
             }
-            // if (getJustForecastData) {
-            //     document.getElementById('update-info').innerHTML = `Updated: ${epochToDate(tempestForecastData.current_conditions.time)}`;
-            //     document.getElementById('weatherIcon').src = `https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/${tempestForecastData.current_conditions.icon}.svg`;
-            //     document.getElementById('temperature').innerHTML = formatTemperature(tempestForecastData.current_conditions.air_temperature);
-            //     document.getElementById('weatherSummary').innerHTML = weatherSummary; //tempestData.current_conditions.conditions;
-            //     document.getElementById('feelsLike').innerHTML = getPhrase('feels_like') + ' ' + formatTemperature(tempestForecastData.current_conditions.feels_like);
-            //     document.getElementById('highTemp').innerHTML = `High: ${formatTemperature(tempestForecastData.forecast.daily[0].air_temp_high)}`;
-            //     document.getElementById('lowTemp').innerHTML = `Low: ${formatTemperature(tempestForecastData.forecast.daily[0].air_temp_low)}`;
-            //     let sunrise = new Date(tempestForecastData.forecast.daily[0].sunrise * 1000);
-            //     document.getElementById('sunrise').innerHTML = sunrise.toLocaleTimeString('en-US', {hour: 'numeric', minute:'numeric'});
-            //     let sunset = new Date(tempestForecastData.forecast.daily[0].sunset * 1000);
-            //     document.getElementById('sunset').innerHTML = sunset.toLocaleTimeString('en-US', {hour: 'numeric', minute:'numeric'});
-            //     // document.getElementById('humidity').innerHTML = `Humidity: ${tempestForecastData.current_conditions.relative_humidity}%`;
-            //     document.getElementById('humidity').innerHTML = `${tempestForecastData.current_conditions.relative_humidity}% humidity`;
-            //     // document.getElementById('pressure').innerHTML = `Pressure: ${tempestForecastData.current_conditions.sea_level_pressure} ${tempestForecastData.units.units_pressure} - ${tempestForecastData.current_conditions.pressure_trend}`;
-            //     document.getElementById('pressure').innerHTML = `${tempestForecastData.current_conditions.sea_level_pressure} ${tempestForecastData.units.units_pressure} - ${tempestForecastData.current_conditions.pressure_trend}`;
-            //     setPressureTrendIcon(tempestForecastData.current_conditions.pressure_trend);
-            //     document.getElementById('uvIndex').innerHTML = `${tempestForecastData.current_conditions.uv} UV Index`;
-            //     setWindDirectionIcon(tempestForecastData.current_conditions.wind_direction_cardinal);
-            //     document.getElementById('windInfo').innerHTML = `${tempestForecastData.current_conditions.wind_direction_cardinal} ${tempestForecastData.current_conditions.wind_avg} ${tempestForecastData.units.units_wind}`;
-            //     let lightningInfo = `${epochToDate(tempestForecastData.current_conditions.lightning_strike_last_epoch, true)} (${tempestForecastData.current_conditions.lightning_strike_last_distance_msg})`;
-            //     document.getElementById('lightning').innerHTML = lightningInfo;
-            //     populateForecastGrid(tempestForecastData);
-            //     console.log(tempestForecastData);
-            // } else {
-            //     url = STATION_BASE_URL.replace('[_STATION_ID]',parameters.station_id);
-            //     url = url.replace('[_TOKEN]',parameters.token);
-            //     axios.get(url).then(function (response) {
-            //         console.log('Successfully retrieved station data');
-            //         tempestStationData = response.data;
-            //         let deviceName = '';
-            //         if (!getJustForecastData) {
-            //             let foundDevice = false;
-            //             for (let i = 0; i < tempestStationData.stations.length; i++) {
-            //                 const station = tempestStationData.stations[i];
-            //                 if (station.station_id == Number(STATION_ID) ) {
-            //                     //Found station.  Loop through devices
-            //                     console.log(`Station ${station.station_id} found.  Searching for device...`);
-            //                     for (let j = 0; j < station.devices.length; j++) {
-            //                         const device = station.devices[j];
-            //                         if (device.device_type == 'ST') {
-            //                             //Get the name
-            //                             console.log(`${device.device_type} device found for Station ${station.station_id}: ${device.device_meta.name}`)
-            //                             deviceName = device.device_meta.name;
-            //                             foundDevice = true;
-            //                             break;
-            //                         }
-            //                     }
-            //                 }
-            //                 if (foundDevice) {
-            //                     break;
-            //                 }                   
-            //             }
-            //             document.getElementById('station-info').innerHTML = `${tempestForecastData.location_name} (${deviceName})`;
-            //             if (!foundDevice) {
-            //                 console.log(`Device not found for Station ID ${STATION_ID}.`)
-            //             }
-            //         }
-            //         document.getElementById('update-info').innerHTML = `Updated: ${epochToDate(tempestForecastData.current_conditions.time)}`;
-            //         document.getElementById('weatherIcon').src = `https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/${tempestForecastData.current_conditions.icon}.svg`;
-            //         document.getElementById('temperature').innerHTML = formatTemperature(tempestForecastData.current_conditions.air_temperature);
-            //         document.getElementById('weatherSummary').innerHTML = weatherSummary; //tempestData.current_conditions.conditions;
-            //         document.getElementById('feelsLike').innerHTML = getPhrase('feels_like') + ' ' + formatTemperature(tempestForecastData.current_conditions.feels_like);
-            //         document.getElementById('highTemp').innerHTML = `High: ${formatTemperature(tempestForecastData.forecast.daily[0].air_temp_high)}`;
-            //         document.getElementById('lowTemp').innerHTML = `Low: ${formatTemperature(tempestForecastData.forecast.daily[0].air_temp_low)}`;
-            //         let sunrise = new Date(tempestForecastData.forecast.daily[0].sunrise * 1000);
-            //         document.getElementById('sunrise').innerHTML = sunrise.toLocaleTimeString('en-US', {hour: 'numeric', minute:'numeric'});
-            //         let sunset = new Date(tempestForecastData.forecast.daily[0].sunset * 1000);
-            //         document.getElementById('sunset').innerHTML = sunset.toLocaleTimeString('en-US', {hour: 'numeric', minute:'numeric'});
-            //         // document.getElementById('humidity').innerHTML = `Humidity: ${tempestForecastData.current_conditions.relative_humidity}%`;
-            //         document.getElementById('humidity').innerHTML = `${tempestForecastData.current_conditions.relative_humidity}% humidity`;
-            //         // document.getElementById('pressure').innerHTML = `Pressure: ${tempestForecastData.current_conditions.sea_level_pressure} ${tempestForecastData.units.units_pressure} - ${tempestForecastData.current_conditions.pressure_trend}`;
-            //         document.getElementById('pressure').innerHTML = `${tempestForecastData.current_conditions.sea_level_pressure} ${tempestForecastData.units.units_pressure} - ${tempestForecastData.current_conditions.pressure_trend}`;
-            //         setPressureTrendIcon(tempestForecastData.current_conditions.pressure_trend);
-            //         document.getElementById('uvIndex').innerHTML = `${tempestForecastData.current_conditions.uv} UV Index`;
-            //         setWindDirectionIcon(tempestForecastData.current_conditions.wind_direction_cardinal);
-            //         document.getElementById('windInfo').innerHTML = `${tempestForecastData.current_conditions.wind_direction_cardinal} ${tempestForecastData.current_conditions.wind_avg} ${tempestForecastData.units.units_wind}`;
-            //         let lightningInfo = `${epochToDate(tempestForecastData.current_conditions.lightning_strike_last_epoch, true)} (${tempestForecastData.current_conditions.lightning_strike_last_distance_msg})`;
-            //         document.getElementById('lightning').innerHTML = lightningInfo;
-            //         populateForecastGrid(tempestForecastData);
-            //         console.log(tempestStationData);
-            //         console.log(tempestForecastData);
-            //     });
-            // }
         });
     }
 
     function populateForecastGrid(data) {
         let forecastData = data.forecast.daily;
+        if (forecastType == 'hourly') {
+            forecastData = data.forecast.hourly;
+        }
         let iconURLTemplate = `https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/[_CONDITION].svg`;
 
         //Start the day after today
@@ -974,15 +921,27 @@
             let elemIDTemplate = `forecast-${i}-`;
             //Start replacing
             let elemID = `${elemIDTemplate}dow`;
-            document.getElementById(elemID).innerHTML = getDoW(forecast.day_start_local);
+            if (forecastType == 'daily') {
+                document.getElementById(elemID).innerHTML = getDoW(forecast.day_start_local);
+            } else {
+                document.getElementById(elemID).innerHTML = epochToTime(forecast.time);
+            }
             elemID = `${elemIDTemplate}img`;
             document.getElementById(elemID).src = iconURL;
             elemID = `${elemIDTemplate}precip`;
             document.getElementById(elemID).innerHTML = `${forecast.precip_probability}%`;
-            elemID = `${elemIDTemplate}high`;
-            document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temp_high)}`;
-            elemID = `${elemIDTemplate}low`;
-            document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temp_low)}`;
+            if (forecastType == 'daily') {
+                elemID = `${elemIDTemplate}high`;
+                document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temp_high)}`;
+                elemID = `${elemIDTemplate}low`;
+                document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temp_low)}`;
+            } else {
+                elemID = `${elemIDTemplate}high`;
+                document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.air_temperature)}`;
+                elemID = `${elemIDTemplate}low`;
+                document.getElementById(elemID).innerHTML = `${formatTemperature(forecast.feels_like)}`;
+            }
+
         }
     }
     function getDoW(epoch) {
@@ -1073,33 +1032,6 @@
 
     });
 
-    // function init() {
-    //     let vm = this;
-    //     console.log(vm);
-    //     stio.ready(function (data) {
-    //         if (!isNullOrEmpty(data.settings.apiKey)) {
-    //             API_KEY = data.settings.apiKey;
-    //         }
-    //         console.log('API Key: ' + data.settings.apiKey);
-    //         if (!isNullOrEmpty(data.settings.stationId)) {
-    //             STATION_ID = data.settings.stationId;
-    //         }
-    //         console.log('Station ID: ' + data.settings.stationId);
-    //         if (!isNullOrEmpty(data.settings.units)) {
-    //             vm.units = data.settings.units;
-    //         }
-    //         console.log('Units: ' + data.settings.units);
-    //         if (!isNullOrEmpty(data.settings.lang)) {
-    //             vm.lang = data.settings.lang;
-    //             // vm.formatters.dayOfWeek = vm.getDayOfWeekFormatter();
-    //         }
-    //         console.log('Language: ' + data.settings.lang);
-
-    //         // vm.initialize();
-    //     });
-    // }
-
-    // init();
 
     function getLanguage(lang) {
         //allow the language code to be passed in or fallback to the data model
