@@ -917,13 +917,13 @@
         let iconURLTemplate = `https://s3.amazonaws.com/tempest.cdn/assets/better-forecast/v9/[_CONDITION].svg`;
 
         for (let i = 1; i <= 5; i++) {
-            const forecast = forecastData[i];
-            let iconURL = iconURLTemplate.replace('[_CONDITION]',forecast.icon);
             let index = i;
             if (forecastType == 'hourly') {
                 index = i - 1;
             }
-            let elemIDTemplate = `forecast-${index}-`;
+            const forecast = forecastData[index];
+            let iconURL = iconURLTemplate.replace('[_CONDITION]',forecast.icon);
+            let elemIDTemplate = `forecast-${i}-`;
             //Start replacing
             let elemID = `${elemIDTemplate}dow`;
             if (forecastType == 'daily') {
